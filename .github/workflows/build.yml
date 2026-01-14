@@ -1,0 +1,61 @@
+name: Build and Release
+
+on: 
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  build:
+    name: Build, Test and Release
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+    
+    env:
+      PROJECT_NAME: 'sbcwallet'
+
+    steps:
+
+    - uses: actions/checkout@v4
+      name: Checkout
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: Variables
+      run: |
+        echo VERSION=$(node -p "require('./package.json').version") >> $GITHUB_ENV
+      shell: bash
+
+    - name: Install and Build
+      run: |
+        npm install
+        npm run build
+
+    - name: Run Tests
+      run: |
+        npm run test
+
+    - name: Package
+      run: |
+        echo RELEASE_NAME=$(npm pack) >> $GITHUB_ENV
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{env.PROJECT_NAME}}-preview-${{env.VERSION}}
+        path: "${{env.RELEASE_NAME}}"
+
+    - name: Release
+      uses: sondreb/action-release@main
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        files: "${{env.RELEASE_NAME}}"
+        draft: true
+        prerelease: false
+        name: "${{ env.PROJECT_NAME }} (${{env.VERSION}})"
+        tag: ${{env.VERSION}}
