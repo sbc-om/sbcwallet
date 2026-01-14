@@ -1,0 +1,33 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "cardTitle": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": "Program Entry Schedule"
+    }
+  },
+  "header": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "textModulesData": [
+    {
+      "id": "site",
+      "header": "Site",
+      "body": ""
+    },
+    {
+      "id": "window",
+      "header": "Window",
+      "body": ""
+    }
+  ],
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  }
+}

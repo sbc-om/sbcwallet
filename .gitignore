@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# local env
+.env
+
+# credentials / certs (do not commit)
+*.p12
+*.pem
+*.cer
+*.key
+*.jks
+*.pfx
+
+# credential JSON files (keep templates/*.json tracked)
+google-credentials*.json
+smartbusinesscenter-*.json
+certs/*.json
+
+# generated images
+hero-images/*.png
+*.png

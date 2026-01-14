@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sbcwallet Loyalty Admin</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        background: #0b1220;
+        color: #e5e7eb;
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 28px 16px 48px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+      .card {
+        background: rgba(17, 24, 39, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 6px 10px;
+        margin-top: 12px;
+      }
+      .k { color: #9ca3af; }
+      .v { color: #f9fafb; overflow-wrap: anywhere; }
+      button {
+        background: #111827;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #f9fafb;
+        padding: 10px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+      button:hover { border-color: rgba(148, 163, 184, 0.45); }
+      input {
+        background: #0b1220;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #f9fafb;
+        padding: 10px 12px;
+        border-radius: 10px;
+        width: 120px;
+      }
+      a { color: #60a5fa; }
+      .muted { color: #9ca3af; font-size: 13px; }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(2, 6, 23, 0.35);
+        font-size: 13px;
+      }
+      .points {
+        font-size: 44px;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+      }
+      .danger { color: #fca5a5; }
+      code {
+        background: rgba(2, 6, 23, 0.55);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>sbcwallet — Loyalty Admin</h1>
+      <p class="muted">
+        This page talks to the local server (<code>loyalty-admin-server.js</code>) to create a loyalty card and update its points.
+      </p>
+
+      <div class="card">
+        <div class="row" style="justify-content: space-between;">
+          <div class="pill"><span>Card</span> <span id="status" class="muted">loading…</span></div>
+          <button id="btnInit">(Re)Init Card</button>
+        </div>
+
+        <div style="margin-top: 14px;" class="row">
+          <div>
+            <div class="muted">Points</div>
+            <div class="points" id="points">—</div>
+          </div>
+          <div class="row">
+            <button data-delta="-10">-10</button>
+            <button data-delta="-1">-1</button>
+            <button data-delta="+1">+1</button>
+            <button data-delta="+10">+10</button>
+          </div>
+          <div class="row">
+            <input id="setPoints" type="number" min="0" placeholder="Set" />
+            <button id="btnSet">Set Points</button>
+          </div>
+          <div class="row">
+            <button id="btnRefresh">Refresh</button>
+          </div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Member ID (QR)</div>
+          <div class="v" id="memberId">—</div>
+
+          <div class="k">Customer</div>
+          <div class="v" id="customerName">—</div>
+
+          <div class="k">Card ID</div>
+          <div class="v" id="cardId">—</div>
+
+          <div class="k">Save URL</div>
+          <div class="v"><a id="saveUrl" href="#" target="_blank" rel="noreferrer">—</a></div>
+
+          <div class="k">Locations</div>
+          <div class="v" id="locations">—</div>
+        </div>
+
+        <p class="muted" style="margin-top: 14px;">
+          Tip: after you add the card once, click +/- to update points. The server upserts the Google Wallet object when creds exist.
+        </p>
+        <p id="error" class="muted danger" style="display:none;"></p>
+      </div>
+    </div>
+
+    <script>
+      const el = id => document.getElementById(id)
+      const setText = (id, v) => (el(id).textContent = v ?? '—')
+      const setError = msg => {
+        const e = el('error')
+        if (!msg) {
+          e.style.display = 'none'
+          e.textContent = ''
+          return
+        }
+        e.style.display = 'block'
+        e.textContent = msg
+      }
+
+      async function api(path, opts) {
+        const res = await fetch(path, {
+          headers: { 'content-type': 'application/json' },
+          ...opts
+        })
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          throw new Error(body?.error || `Request failed: ${res.status}`)
+        }
+        return body
+      }
+
+      function render(state) {
+        setError('')
+        setText('status', state?.card?.status || '—')
+        setText('points', state?.card?.points ?? '0')
+        setText('memberId', state?.customer?.memberId)
+        setText('customerName', state?.customer?.fullName)
+        setText('cardId', state?.card?.id)
+        const url = state?.saveUrl || ''
+        const a = el('saveUrl')
+        a.textContent = url || '—'
+        a.href = url || '#'
+
+        const loc = state?.program?.metadata?.googleWallet?.locations
+        if (Array.isArray(loc) && loc.length) {
+          el('locations').textContent = loc.map(p => `${p.latitude},${p.longitude}`).join(' | ')
+        } else {
+          el('locations').textContent = '—'
+        }
+      }
+
+      async function refresh() {
+        const s = await api('/state')
+        render(s)
+      }
+
+      async function init() {
+        const s = await api('/init', { method: 'POST', body: '{}' })
+        render(s)
+      }
+
+      async function deltaPoints(delta) {
+        const s = await api('/points', {
+          method: 'POST',
+          body: JSON.stringify({ delta })
+        })
+        render(s)
+      }
+
+      async function setPoints(setPoints) {
+        const s = await api('/points', {
+          method: 'POST',
+          body: JSON.stringify({ setPoints })
+        })
+        render(s)
+      }
+
+      document.querySelectorAll('button[data-delta]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          try {
+            const delta = Number(btn.getAttribute('data-delta'))
+            await deltaPoints(delta)
+          } catch (e) {
+            setError(e.message)
+          }
+        })
+      })
+
+      el('btnSet').addEventListener('click', async () => {
+        try {
+          const v = Number(el('setPoints').value)
+          if (!Number.isFinite(v) || v < 0) throw new Error('Enter a non-negative number')
+          await setPoints(v)
+        } catch (e) {
+          setError(e.message)
+        }
+      })
+
+      el('btnRefresh').addEventListener('click', async () => {
+        try {
+          await refresh()
+        } catch (e) {
+          setError(e.message)
+        }
+      })
+
+      el('btnInit').addEventListener('click', async () => {
+        try {
+          await init()
+        } catch (e) {
+          setError(e.message)
+        }
+      })
+
+      // initial load
+      refresh().catch(() => init().catch(e => setError(e.message)))
+    </script>
+  </body>
+</html>

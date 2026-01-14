@@ -1,0 +1,29 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "accountId": "",
+  "accountName": "",
+  "textModulesData": [
+    {
+      "id": "points",
+      "header": "Points",
+      "body": "0"
+    },
+    {
+      "id": "memberId",
+      "header": "Member ID",
+      "body": ""
+    },
+    {
+      "id": "status",
+      "header": "Status",
+      "body": "ACTIVE"
+    }
+  ],
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  },
+  "hexBackgroundColor": "#111827"
+}

@@ -1,0 +1,38 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "cardTitle": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": "Transport Order"
+    }
+  },
+  "header": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "textModulesData": [
+    {
+      "id": "carrier",
+      "header": "Carrier",
+      "body": ""
+    },
+    {
+      "id": "client",
+      "header": "Client",
+      "body": ""
+    },
+    {
+      "id": "status",
+      "header": "Status",
+      "body": "ISSUED"
+    }
+  ],
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Program Entry Schedule",
+  "backgroundColor": "rgb(34, 139, 230)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(200, 230, 255)",
+  "logoText": "sbcwallet",
+  "generic": {
+    "primaryFields": [
+      {
+        "key": "programName",
+        "label": "Program",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "site",
+        "label": "Site",
+        "value": ""
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "windowFrom",
+        "label": "From",
+        "value": ""
+      },
+      {
+        "key": "windowTo",
+        "label": "To",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "scheduleId",
+        "label": "Schedule ID",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ]
+}

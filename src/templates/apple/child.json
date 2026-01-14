@@ -1,0 +1,59 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Transport Order",
+  "backgroundColor": "rgb(60, 179, 113)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(200, 255, 220)",
+  "logoText": "sbcwallet",
+  "generic": {
+    "primaryFields": [
+      {
+        "key": "plate",
+        "label": "Plate",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "carrier",
+        "label": "Carrier",
+        "value": ""
+      },
+      {
+        "key": "status",
+        "label": "Status",
+        "value": "ISSUED"
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "client",
+        "label": "Client",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "orderId",
+        "label": "Order ID",
+        "value": ""
+      },
+      {
+        "key": "parentId",
+        "label": "Schedule ID",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ]
+}
