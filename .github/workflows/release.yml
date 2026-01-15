@@ -49,9 +49,35 @@ jobs:
         folder: "./"
 
     - name: Display structure of downloaded files
-      run: ls -R
+      run: |
+        echo "PWD: $(pwd)"
+        ls -la
+        echo "----"
+        find . -maxdepth 2 -type f -print
+
+    - name: Resolve tarball filename
+      id: tarball
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        # Prefer the expected release name, but fall back to "any .tgz".
+        if [[ -f "${RELEASE_NAME}" ]]; then
+          TARBALL="${RELEASE_NAME}"
+        else
+          TARBALL=$(ls -1 *.tgz 2>/dev/null | head -n 1 || true)
+        fi
+
+        if [[ -z "${TARBALL}" ]]; then
+          echo "No .tgz found in workspace root." >&2
+          echo "Expected: ${RELEASE_NAME}" >&2
+          exit 1
+        fi
+
+        echo "TARBALL=${TARBALL}" >> "$GITHUB_ENV"
+        echo "Using tarball: ${TARBALL}"
 
     - name: NPM Publish
-      run: npm publish ${{env.RELEASE_NAME}} --access public
+      run: npm publish "${{ env.TARBALL }}" --access public
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.NOM }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

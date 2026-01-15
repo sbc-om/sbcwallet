@@ -36,10 +36,8 @@ jobs:
 
     - name: Install and Build
       run: |
-        npm install
+        npm ci
         npm run build
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN || secrets.NOM }}
 
     - name: Run Tests
       if: ${{ env.RUN_TESTS == 'true' }}
@@ -48,7 +46,8 @@ jobs:
 
     - name: Package
       run: |
-        echo RELEASE_NAME=$(npm pack) >> $GITHUB_ENV
+        RELEASE_NAME=$(npm pack | tail -n 1)
+        echo "RELEASE_NAME=${RELEASE_NAME}" >> $GITHUB_ENV
 
     - uses: actions/upload-artifact@v4
       with:
