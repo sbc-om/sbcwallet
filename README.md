@@ -22,7 +22,7 @@ import { createBusiness, createLoyaltyProgram } from 'sbcwallet'
 
 const biz = createBusiness({
 	name: 'X Cafe',
-	programName: 'Spirit Rewards',
+	programName: 'x Rewards',
 	pointsLabel: 'Points',
 	wallet: {
 		googleWallet: {
@@ -42,7 +42,7 @@ const biz = createBusiness({
 
 			// Advanced passthrough: merged into the Apple pass.json payload
 			passOverrides: {
-				userInfo: { tenant: 'spirit-hub' }
+				userInfo: { tenant: 'x' }
 			}
 		}
 	}
