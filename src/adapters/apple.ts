@@ -40,27 +40,30 @@ export class AppleWalletAdapter {
       // Apply pass data to template
       const populatedTemplate = this.populateTemplate(template, passData, profile, passType)
 
+      // Optional per-pass overrides via metadata (useful for per-business theming)
+      const appleWallet = (passData as any)?.metadata?.appleWallet || {}
+
       // Build pass props from populated template
       const passProps: any = {
         serialNumber: passData.id,
-        description: populatedTemplate.description || 'sbcwallet Pass',
-        organizationName: populatedTemplate.organizationName || 'sbcwallet',
+        description: appleWallet.description || populatedTemplate.description || 'sbcwallet Pass',
+        organizationName: appleWallet.organizationName || populatedTemplate.organizationName || 'sbcwallet',
         passTypeIdentifier: this.config.passTypeId,
         teamIdentifier: this.config.teamId
       }
 
       // Add colors
-      if (populatedTemplate.backgroundColor) {
-        passProps.backgroundColor = populatedTemplate.backgroundColor
+      if (appleWallet.backgroundColor || populatedTemplate.backgroundColor) {
+        passProps.backgroundColor = appleWallet.backgroundColor || populatedTemplate.backgroundColor
       }
-      if (populatedTemplate.foregroundColor) {
-        passProps.foregroundColor = populatedTemplate.foregroundColor
+      if (appleWallet.foregroundColor || populatedTemplate.foregroundColor) {
+        passProps.foregroundColor = appleWallet.foregroundColor || populatedTemplate.foregroundColor
       }
-      if (populatedTemplate.labelColor) {
-        passProps.labelColor = populatedTemplate.labelColor
+      if (appleWallet.labelColor || populatedTemplate.labelColor) {
+        passProps.labelColor = appleWallet.labelColor || populatedTemplate.labelColor
       }
-      if (populatedTemplate.logoText) {
-        passProps.logoText = populatedTemplate.logoText
+      if (appleWallet.logoText || populatedTemplate.logoText) {
+        passProps.logoText = appleWallet.logoText || populatedTemplate.logoText
       }
 
       // Add barcodes
@@ -71,6 +74,12 @@ export class AppleWalletAdapter {
       // Add generic fields
       if (populatedTemplate.generic) {
         passProps.generic = populatedTemplate.generic
+      }
+
+      // Advanced passthrough: allow issuers to supply any PassKit fields.
+      // Example: webServiceURL, authenticationToken, appLaunchURL, userInfo, beacons, nfc, etc.
+      if (appleWallet.passOverrides && typeof appleWallet.passOverrides === 'object') {
+        Object.assign(passProps, appleWallet.passOverrides)
       }
 
       // Create pass

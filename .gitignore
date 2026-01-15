@@ -6,6 +6,7 @@ dist/
 
 # local env
 .env
+.env.*
 
 # credentials / certs (do not commit)
 *.p12
@@ -23,3 +24,15 @@ certs/*.json
 # generated images
 hero-images/*.png
 *.png
+
+# demo state files (generated at runtime)
+examples/.loyalty-*-state.json
+
+# npm pack artifacts
+*.tgz
+
+# misc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store

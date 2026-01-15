@@ -108,6 +108,10 @@ export interface LoyaltyBusiness {
   programName: string
   pointsLabel: string
   loyaltyProgramId?: string
+  wallet?: {
+    googleWallet?: Record<string, any>
+    appleWallet?: Record<string, any>
+  }
   createdAt: string
   updatedAt: string
 }
@@ -125,7 +129,12 @@ export const CreateBusinessInputSchema = z.object({
   id: z.string().min(1).optional(),
   name: z.string().min(1),
   programName: z.string().min(1).optional(),
-  pointsLabel: z.string().min(1).optional()
+  pointsLabel: z.string().min(1).optional(),
+  // Per-business theming / design knobs (optional)
+  wallet: z.object({
+    googleWallet: z.record(z.any()).optional(),
+    appleWallet: z.record(z.any()).optional()
+  }).optional()
 })
 
 export type CreateBusinessInput = z.infer<typeof CreateBusinessInputSchema>
@@ -150,6 +159,8 @@ export const CreateLoyaltyProgramInputSchema = z.object({
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180)
   })).optional(),
+  // Apple Wallet: text shown when the pass becomes relevant (e.g., near a location)
+  relevantText: z.string().min(1).optional(),
   countryCode: z.string().length(2).optional(),
   homepageUrl: z.string().url().optional(),
   metadata: z.record(z.any()).optional()
@@ -177,6 +188,18 @@ export const UpdateLoyaltyPointsInputSchema = z.object({
 })
 
 export type UpdateLoyaltyPointsInput = z.infer<typeof UpdateLoyaltyPointsInputSchema>
+
+export const PushLoyaltyMessageInputSchema = z.object({
+  cardId: z.string().min(1).optional(),
+  objectId: z.string().min(1).optional(),
+  header: z.string().min(1),
+  body: z.string().min(1),
+  messageType: z.string().min(1).optional()
+}).refine(v => v.cardId !== undefined || v.objectId !== undefined, {
+  message: 'Provide either cardId or objectId'
+})
+
+export type PushLoyaltyMessageInput = z.infer<typeof PushLoyaltyMessageInputSchema>
 
 export type GeoLocation = {
   latitude: number

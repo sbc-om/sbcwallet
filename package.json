@@ -31,7 +31,8 @@
     "publish:npm": "npm publish",
     "loyalty:issue": "npm run build && node examples/loyalty-google-issue.js",
     "loyalty:server": "npm run build && node examples/loyalty-admin-server.js",
-    "loyalty:server:fixed": "npm run build && node examples/loyalty-fixed-card-server.js"
+    "loyalty:server:fixed": "npm run build && node examples/loyalty-fixed-card-server.js",
+    "loyalty:server:multi": "npm run build && node examples/loyalty-multi-tenant-server.js"
   },
   "keywords": [
     "wallet",

@@ -5,6 +5,7 @@ import { dirname, join } from 'path'
 import { GoogleAuth } from 'google-auth-library'
 import { generateLogisticsHeroImage, generateHealthcareHeroImage } from '../utils/progress-image.js'
 import type { LogisticsStatus, HealthcareStatus } from '../utils/progress-image.js'
+import { logDebug, logWarn, logError } from '../utils/logger.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -44,14 +45,14 @@ export class GoogleWalletAdapter {
           try {
             await this.upsertInAPI('loyaltyClass', classPayload)
           } catch (error) {
-            console.warn('⚠️  Google Wallet API loyaltyClass create/update failed')
-            console.warn(error)
+            logWarn('Google Wallet API loyaltyClass create/update failed')
+            logWarn(error)
           }
         } else {
-          console.log('⚠️  No Google Auth - class not created in API (will not work on device)')
+          logWarn('No Google Auth - class not created in API (will not work on device)')
         }
 
-        console.log('Google Wallet Class:', JSON.stringify(classPayload, null, 2))
+        logDebug('Google Wallet Class:', JSON.stringify(classPayload, null, 2))
 
         // Save URL is not applicable for classes.
         return { object: classPayload as any, saveUrl: '' }
@@ -106,11 +107,11 @@ export class GoogleWalletAdapter {
           await this.upsertInAPI(isLoyalty ? 'loyaltyObject' : 'genericObject', populatedObject)
         } catch (error) {
           // Keep going so we can still generate a signed Save URL for debugging/testing.
-          console.warn('⚠️  Google Wallet API object create/update failed; continuing to Save URL generation')
-          console.warn(error)
+          logWarn('Google Wallet API object create/update failed; continuing to Save URL generation')
+          logWarn(error)
         }
       } else {
-        console.log('⚠️  No Google Auth - object not created in API (will not work on device)')
+        logWarn('No Google Auth - object not created in API (will not work on device)')
       }
 
       // Generate save URL with signed JWT
@@ -119,8 +120,8 @@ export class GoogleWalletAdapter {
       const saveUrl = await this.generateSaveUrl(populatedObject, isLoyalty ? 'loyaltyObjects' : 'genericObjects')
 
       // Log the object
-      console.log('Google Wallet Object:', JSON.stringify(populatedObject, null, 2))
-      console.log('Save URL:', saveUrl)
+      logDebug('Google Wallet Object:', JSON.stringify(populatedObject, null, 2))
+      logDebug('Save URL:', saveUrl)
 
       return {
         object: populatedObject,
@@ -146,9 +147,16 @@ export class GoogleWalletAdapter {
       ...baseTemplate,
       ...profileTemplate,
       id: classId,
-      issuerName: (profileTemplate as any).issuerName || googleWallet.issuerName || 'sbcwallet',
+      // Prefer business/program-provided metadata over template defaults.
+      issuerName: googleWallet.issuerName || (profileTemplate as any).issuerName || baseTemplate.issuerName || 'sbcwallet',
       programName: (passData as any).programName || googleWallet.programName || 'Loyalty',
       hexBackgroundColor: googleWallet.backgroundColor || baseTemplate.hexBackgroundColor || '#111827'
+    }
+
+    // Geo locations (latitude/longitude pairs) for location-based surfacing.
+    const locations = googleWallet.locations || metadata.locations
+    if (Array.isArray(locations) && locations.length > 0) {
+      payload.locations = locations
     }
 
     if (googleWallet.countryCode) payload.countryCode = googleWallet.countryCode
@@ -344,7 +352,7 @@ export class GoogleWalletAdapter {
     const objectId = passObject.id
 
     if (!this.config.serviceAccountPath) {
-      console.warn('⚠️  No service account - returning unsigned URL (will not work)')
+      logWarn('No service account - returning unsigned URL (will not work)')
       return `${baseUrl}/${encodeURIComponent(objectId)}`
     }
 
@@ -373,7 +381,7 @@ export class GoogleWalletAdapter {
 
       return `${baseUrl}/${token}`
     } catch (error) {
-      console.error('Error generating signed JWT:', error)
+      logError('Error generating signed JWT:', error)
       return `${baseUrl}/${encodeURIComponent(objectId)}`
     }
   }
@@ -399,11 +407,11 @@ export class GoogleWalletAdapter {
         data: payload
       })
 
-      console.log(`✅ ${kind} created in Google Wallet API`)
+      logDebug(`✅ ${kind} created in Google Wallet API`)
     } catch (error: any) {
       if (error.response?.status === 409) {
         // Object already exists, try to update it
-        console.log('ℹ️  Resource exists, updating...')
+        logDebug('ℹ️  Resource exists, updating...')
         try {
           const client = await this.auth.getClient()
           const baseUrl = 'https://walletobjects.googleapis.com/walletobjects/v1'
@@ -417,16 +425,40 @@ export class GoogleWalletAdapter {
             data: payload
           })
 
-          console.log(`✅ ${kind} updated in Google Wallet API`)
+          logDebug(`✅ ${kind} updated in Google Wallet API`)
         } catch (updateError) {
-          console.error(`❌ Error updating ${kind}:`, updateError)
+          logError(`❌ Error updating ${kind}:`, updateError)
           throw updateError
         }
       } else {
-        console.error(`❌ Error creating ${kind}:`, error.response?.data || error.message)
+        logError(`❌ Error creating ${kind}:`, error.response?.data || error.message)
         throw error
       }
     }
+  }
+
+  async addMessageToLoyaltyObject(
+    loyaltyObjectId: string,
+    message: { header: string; body: string; messageType?: string }
+  ): Promise<void> {
+    if (!this.auth) {
+      throw new Error('Google Auth not initialized')
+    }
+
+    const client = await this.auth.getClient()
+    const baseUrl = 'https://walletobjects.googleapis.com/walletobjects/v1'
+
+    await client.request({
+      url: `${baseUrl}/loyaltyObject/${encodeURIComponent(loyaltyObjectId)}/addMessage`,
+      method: 'POST',
+      data: {
+        message: {
+          header: message.header,
+          body: message.body,
+          messageType: message.messageType || 'TEXT_AND_NOTIFY'
+        }
+      }
+    })
   }
 
   /**
@@ -464,10 +496,10 @@ export class GoogleWalletAdapter {
       // Ensure directory exists
       try {
         await writeFile(imagePath, imageBuffer)
-        console.log(`✨ Hero image saved: ${imagePath}`)
+        logDebug(`✨ Hero image saved: ${imagePath}`)
       } catch (err) {
         // Directory might not exist, that's OK - just skip for now
-        console.log(`ℹ️  Hero image generated (not uploaded - requires public URL)`)
+        logDebug('ℹ️  Hero image generated (not uploaded - requires public URL)')
       }
 
       // TODO: Upload to cloud storage and get public URL
@@ -497,9 +529,9 @@ export class GoogleWalletAdapter {
 
       passObject.hexBackgroundColor = statusColors[passData.status] || '#4A90E2'
 
-      console.log(`✨ Dynamic color applied for status: ${passData.status} (${passObject.hexBackgroundColor})`)
+      logDebug(`✨ Dynamic color applied for status: ${passData.status} (${passObject.hexBackgroundColor})`)
     } catch (error) {
-      console.error('⚠️  Failed to generate hero image:', error)
+      logError('⚠️  Failed to generate hero image:', error)
       // Continue without hero image if generation fails
     }
   }
@@ -509,9 +541,9 @@ export class GoogleWalletAdapter {
     // In a real implementation, this would call the Google Wallet API
     const classId = `${this.config.issuerId}.${profile.name}_${passType}`
 
-    console.log(`Creating Google Wallet Class: ${classId}`)
-    console.log('Profile:', profile.name)
-    console.log('Type:', passType)
+    logDebug(`Creating Google Wallet Class: ${classId}`)
+    logDebug('Profile:', profile.name)
+    logDebug('Type:', passType)
 
     // This would normally make an API call to:
     // POST https://walletobjects.googleapis.com/walletobjects/v1/genericClass

@@ -1,166 +1,148 @@
-# 🎟️ sbcwallet
+# sbcwallet
 
-Unified Wallet-Pass SDK for Real-World Credentials
+Unified wallet-pass SDK for Apple Wallet (.pkpass) and Google Wallet.
 
-sbcwallet is a TypeScript SDK for generating, signing, and managing verifiable passes on Apple Wallet and Google Wallet.
-Built on @sbcwallet, it bridges cryptographic truth and real-world credentials — enabling secure, interoperable workflows for logistics, healthcare, and beyond.
-
-⸻
-
-## ✨ Overview
-
-sbcwallet provides a unified abstraction layer for issuing and updating wallet passes across multiple ecosystems.
-It standardizes claim flows (like PES → TO) and status pipelines (ISSUED → PRESENCE → OPS → EXITED) while maintaining verifiable hashes, signatures, and anchor integrity via sbcwallet Core.
-
-⸻
-
-## 🚀 Quickstart
+## Install
 
 ```sh
 npm install sbcwallet
 ```
 
-```js
+## Quickstart (Loyalty)
 
-import { createParentSchedule, createChildTicket, getPkpassBuffer } from 'sbcwallet'
+Multi-tenant loyalty is designed for a real-world setup:
+- Each business (tenant) defines its own card design (logo, colors, issuer name).
+- Users add a card using their own `memberId`.
+- Points can be updated for an existing issued card.
 
-// 1️⃣ Create a parent PES schedule
-const pes = await createParentSchedule({
-  profile: 'logistics',
-  programName: 'Morning Yard Veracruz',
-  site: 'Patio Gate 3'
+### Define a business (per-tenant theme) and create its program
+
+```ts
+import { createBusiness, createLoyaltyProgram } from 'sbcwallet'
+
+const biz = createBusiness({
+	name: 'X Cafe',
+	programName: 'Spirit Rewards',
+	pointsLabel: 'Points',
+	wallet: {
+		googleWallet: {
+			issuerName: 'X Cafe',
+			backgroundColor: '#111827',
+			logoUrl: 'https://example.com/logo.png',
+
+			// Advanced passthrough: merged into the Google loyaltyClass payload
+			classOverrides: {
+				reviewStatus: 'UNDER_REVIEW'
+			}
+		},
+		appleWallet: {
+			organizationName: 'X Cafe',
+			logoText: 'X',
+			backgroundColor: 'rgb(17, 24, 39)',
+
+			// Advanced passthrough: merged into the Apple pass.json payload
+			passOverrides: {
+				userInfo: { tenant: 'spirit-hub' }
+			}
+		}
+	}
 })
 
-// 2️⃣ Claim a child Transport Order
-const to = await createChildTicket({
-  parentId: pes.id,
-  plate: 'ABC123A',
-  carrier: 'Transportes Golfo'
+await createLoyaltyProgram({
+	businessId: biz.id,
+	locations: [
+		{ latitude: 35.6892, longitude: 51.389 },
+		{ latitude: 35.7, longitude: 51.4 }
+	],
+	// Apple Wallet: shown when the pass becomes relevant (e.g., near a location)
+	relevantText: 'Welcome back — show this card at checkout',
+	countryCode: 'OM',
+	homepageUrl: 'https://example.com'
 })
-
-// 3️⃣ Generate Apple Wallet pass
-const buf = await getPkpassBuffer('child', to)
-await fs.promises.writeFile('ticket.pkpass', buf)
 ```
 
-## 🎁 Loyalty Cards (Multi-tenant)
-
-Each business defines its own loyalty program, customers create accounts, and each customer gets a loyalty card that shows:
-- A QR/barcode identifier (`memberId`)
-- Current points (`points`) which can be updated
+### Issue a card and generate a Save URL
 
 ```ts
 import {
-	createBusiness,
 	createCustomerAccount,
-	createLoyaltyProgram,
 	issueLoyaltyCard,
 	updateLoyaltyPoints,
 	getGoogleObject
 } from 'sbcwallet'
 
-const biz = createBusiness({ name: 'SBC', pointsLabel: 'points' })
-await createLoyaltyProgram({ businessId: biz.id })
+const memberId = 'USER-123'
 
-const customer = createCustomerAccount({ businessId: biz.id, fullName: 'Alice' })
-const card = await issueLoyaltyCard({ businessId: biz.id, customerId: customer.id, initialPoints: 10 })
+const customer = createCustomerAccount({
+	businessId: biz.id,
+	fullName: 'Alice',
+	memberId
+})
+
+const card = await issueLoyaltyCard({
+	businessId: biz.id,
+	customerId: customer.id,
+	initialPoints: 10,
+	metadata: {
+		googleWallet: {
+			objectOverrides: {
+				linksModuleData: {
+					uris: [{ uri: 'https://example.com', description: 'Website' }]
+				}
+			}
+		}
+	}
+})
+
 await updateLoyaltyPoints({ cardId: card.id, delta: 5 })
 
 const { saveUrl } = await getGoogleObject('child', card)
 console.log(saveUrl)
 ```
 
-⸻
+## Location-based surfacing and notifications
 
-## 🧠 Architecture
-```bash
-sbcwallet
-├── adapters/      # Apple + Google Wallet adapters
-├── api/           # Unified issuance/update API
-├── profiles/      # Domain-specific field maps
-├── templates/     # JSON templates for passes
-└── types.ts       # Shared types and validation
-```
-### Key Components
-```bash
-Module	Description
-adapters/apple.ts	Builds and signs .pkpass files using passkit-generator.
-adapters/google.ts	Creates Google Wallet class/object JSON payloads.
-api/unified.ts	Unified functions: createParentSchedule, createChildTicket, updatePassStatus.
-profiles/	Domain-specific mappings (logistics, healthcare, etc.).
-templates/	JSON templates for field mapping and layout.
-```
+This SDK supports two related concepts:
 
-⸻
+1) Location-based surfacing (no server required)
+- Apple Wallet: setting `locations` and `relevantText` in pass.json can surface the pass on the lock screen when the user is near the business.
+- Google Wallet: setting `locations` on the class/object helps Wallet surface the pass contextually.
 
-## 🧩 Profiles
+2) Push-style notifications (server required)
+- Google Wallet supports sending a message via the `addMessage` API. Your system decides *when* to send the message (for example, after your app detects the user is near the business).
 
-### Logistics (default)
+```ts
+import { pushLoyaltyMessage } from 'sbcwallet'
 
-Entity	Description	Example
-Parent (PES)	Program Entry Schedule	Gate window, site, available slots
-Child (TO)	Transport Order	Plate, carrier, client, status
-Statuses	ISSUED → PRESENCE → SCALE → OPS → EXITED	
-
-### Healthcare (reference)
-
-Entity	Description	Example
-Parent	Appointment Batch	Doctor, location, date
-Child	Patient Visit Ticket	Patient, procedure, status
-Statuses	SCHEDULED → CHECKIN → PROCEDURE → DISCHARGED	
-
-Switch profiles dynamically:
-```js
-await createChildTicket({ profile: 'healthcare', ... })
+await pushLoyaltyMessage({
+	cardId: card.id,
+	header: 'X',
+	body: 'You are nearby — show this card to earn points.',
+	messageType: 'TEXT_AND_NOTIFY'
+})
 ```
 
-⸻
-
-## 🔐 Integration with sbcwallet Core
-
-sbcwallet Pass automatically uses:
-	•	hashEvent() for deterministic hashes
-	•	signCredential() for ECDSA signatures
-	•	dailyMerkle() for anchoring batches
-
-This ensures every pass is cryptographically verifiable and compatible with sbcwallet’s event audit trail.
-
-⸻
-
-## 🧪 Testing
-
-`npm run test`
-
-Tests include:
-	•	Apple .pkpass field mapping
-	•	Google Wallet JSON validity
-	•	Cross-profile field validation
-	•	Core integration (hash + sign + verify)
-
-⸻
-
-## ⚙️ Environment Variables (Apple Wallet)
+## Demo server (multi-tenant)
 
 ```sh
-APPLE_TEAM_ID=ABCD1234
-APPLE_PASS_TYPE_ID=pass.com.sbcwallet.logistics
-APPLE_CERT_PATH=./certs/pass.p12
-APPLE_CERT_PASSWORD=yourpassword
-APPLE_WWDR_PATH=./certs/wwdr.pem
+npm run loyalty:server:multi
 ```
 
-For Google Wallet, include:
+Open `http://localhost:5190`.
+
+## Configuration
+
+For Google Wallet Save URLs to work on-device you must set:
+- `GOOGLE_ISSUER_ID`
+- `GOOGLE_SA_JSON`
+
+For Apple Wallet signing, see APPLE_WALLET_SETUP.md.
+
+## Development
+
 ```sh
-GOOGLE_ISSUER_ID=issuer-id
-GOOGLE_SA_JSON=./google/credentials.json
+npm run build
+npm test
+npm pack --dry-run
 ```
-
-⸻
-
-## 🤝 Contributing
-	1.	Fork the repo
-	2.	Run npm install
-	3.	Add or improve a profile under src/profiles/
-	4.	Write tests in tests/
-	5.	Submit a PR using conventional commits
 

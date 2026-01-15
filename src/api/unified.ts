@@ -6,6 +6,7 @@ import type {
   CreateLoyaltyProgramInput,
   IssueLoyaltyCardInput,
   UpdateLoyaltyPointsInput,
+  PushLoyaltyMessageInput,
   LoyaltyBusiness,
   LoyaltyCustomerAccount,
   ParentPassData,
@@ -23,10 +24,12 @@ import {
   CreateCustomerAccountInputSchema,
   CreateLoyaltyProgramInputSchema,
   IssueLoyaltyCardInputSchema,
-  UpdateLoyaltyPointsInputSchema
+  UpdateLoyaltyPointsInputSchema,
+  PushLoyaltyMessageInputSchema
 } from '../types.js'
 import { AppleWalletAdapter } from '../adapters/apple.js'
 import { GoogleWalletAdapter } from '../adapters/google.js'
+import { logWarn } from '../utils/logger.js'
 import logisticsProfile from '../profiles/logistics/index.js'
 import healthcareProfile from '../profiles/healthcare/index.js'
 import loyaltyProfile from '../profiles/loyalty/index.js'
@@ -117,6 +120,7 @@ export function createBusiness(input: CreateBusinessInput): LoyaltyBusiness {
     name: validated.name,
     programName: validated.programName || `${validated.name} Loyalty`,
     pointsLabel: validated.pointsLabel || 'Points',
+    wallet: (validated as any).wallet,
     createdAt: now,
     updatedAt: now
   }
@@ -172,6 +176,44 @@ export async function createLoyaltyProgram(input: CreateLoyaltyProgramInput): Pr
     throw new Error(`Business not found: ${validated.businessId}`)
   }
 
+  const businessWallet = business.wallet || {}
+  const inputMetadata = (validated.metadata || {}) as any
+
+  const mergedGoogleWallet = {
+    ...(businessWallet.googleWallet || {}),
+    ...(inputMetadata.googleWallet || {}),
+    locations: validated.locations,
+    countryCode: validated.countryCode,
+    homepageUrl: validated.homepageUrl
+  }
+
+  // If caller didn't set issuerName explicitly, default to the business name
+  // so the card shows the tenant brand instead of template defaults.
+  if (!mergedGoogleWallet.issuerName) {
+    mergedGoogleWallet.issuerName = business.name
+  }
+
+  const mergedAppleWallet = {
+    ...(businessWallet.appleWallet || {}),
+    ...(inputMetadata.appleWallet || {})
+  }
+
+  // Apple Wallet: location-based surfacing is controlled via pass.json fields.
+  // We attach them at the program level so issued cards inherit the behavior.
+  if (validated.locations && Array.isArray(validated.locations) && validated.locations.length > 0) {
+    mergedAppleWallet.passOverrides ||= {}
+    if (!mergedAppleWallet.passOverrides.locations) {
+      mergedAppleWallet.passOverrides.locations = validated.locations
+    }
+  }
+
+  if ((validated as any).relevantText) {
+    mergedAppleWallet.passOverrides ||= {}
+    if (!mergedAppleWallet.passOverrides.relevantText) {
+      mergedAppleWallet.passOverrides.relevantText = (validated as any).relevantText
+    }
+  }
+
   const program = await createParentSchedule({
     id: (validated as any).programId,
     profile: 'loyalty',
@@ -182,12 +224,8 @@ export async function createLoyaltyProgram(input: CreateLoyaltyProgramInput): Pr
       businessId: business.id,
       businessName: business.name,
       pointsLabel: business.pointsLabel,
-      googleWallet: {
-        ...(validated.metadata as any)?.googleWallet,
-        locations: validated.locations,
-        countryCode: validated.countryCode,
-        homepageUrl: validated.homepageUrl
-      }
+      googleWallet: mergedGoogleWallet,
+      appleWallet: mergedAppleWallet
     }
   })
 
@@ -220,6 +258,7 @@ export async function issueLoyaltyCard(input: IssueLoyaltyCardInput): Promise<Ch
 
   const program = passStore.get(business.loyaltyProgramId)
   const programGoogleWallet = program && program.type === 'parent' ? (program.metadata as any)?.googleWallet : undefined
+  const programAppleWallet = program && program.type === 'parent' ? (program.metadata as any)?.appleWallet : undefined
 
   const card = await createChildTicket({
     id: (validated as any).cardId,
@@ -237,6 +276,10 @@ export async function issueLoyaltyCard(input: IssueLoyaltyCardInput): Promise<Ch
       googleWallet: {
         ...(programGoogleWallet || {}),
         ...((validated.metadata as any)?.googleWallet || {})
+      },
+      appleWallet: {
+        ...(programAppleWallet || {}),
+        ...((validated.metadata as any)?.appleWallet || {})
       }
     }
   })
@@ -278,6 +321,29 @@ export async function updateLoyaltyPoints(input: UpdateLoyaltyPointsInput): Prom
 
   passStore.set(pass.id, pass)
   return pass
+}
+
+/**
+ * Send a message to a Google Wallet loyalty object.
+ *
+ * Notes:
+ * - This uses the Google Wallet API addMessage endpoint (requires service account credentials).
+ * - Location-based surfacing is controlled by the pass locations; your system decides WHEN to send messages.
+ */
+export async function pushLoyaltyMessage(input: PushLoyaltyMessageInput): Promise<{ ok: true; objectId: string }> {
+  const validated = PushLoyaltyMessageInputSchema.parse(input)
+
+  const issuerId = process.env.GOOGLE_ISSUER_ID || 'test-issuer'
+  const objectId = validated.objectId || `${issuerId}.${validated.cardId}`
+
+  const adapter = new GoogleWalletAdapter()
+  await adapter.addMessageToLoyaltyObject(objectId, {
+    header: validated.header,
+    body: validated.body,
+    messageType: validated.messageType
+  })
+
+  return { ok: true, objectId }
 }
 
 /**
@@ -469,7 +535,7 @@ export async function generatePass(
     try {
       result.applePkpass = await getPkpassBuffer(passType, passData)
     } catch (error) {
-      console.warn('Failed to generate Apple Wallet pass:', error)
+      logWarn('Failed to generate Apple Wallet pass:', error)
     }
   }
 
@@ -479,7 +545,7 @@ export async function generatePass(
       result.googleObject = googleResult.object
       result.googleSaveUrl = googleResult.saveUrl
     } catch (error) {
-      console.warn('Failed to generate Google Wallet object:', error)
+      logWarn('Failed to generate Google Wallet object:', error)
     }
   }
 

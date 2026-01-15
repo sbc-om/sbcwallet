@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sbcwallet Loyalty — Multi-tenant Demo</title>
+    <style>
+      :root { color-scheme: dark; }
+      body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: #0b1220; color: #e5e7eb; }
+      .wrap { max-width: 980px; margin: 0 auto; padding: 28px 16px 48px; }
+      h1 { margin: 0 0 10px; font-size: 22px; }
+      .card { background: rgba(17, 24, 39, 0.8); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 14px; padding: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+      input, textarea { background: #0b1220; border: 1px solid rgba(148, 163, 184, 0.25); color: #f9fafb; padding: 10px 12px; border-radius: 10px; }
+      input { width: 220px; }
+      textarea { width: 520px; height: 68px; }
+      button { background: #111827; border: 1px solid rgba(148, 163, 184, 0.25); color: #f9fafb; padding: 10px 12px; border-radius: 10px; cursor: pointer; }
+      button:hover { border-color: rgba(148, 163, 184, 0.45); }
+      a { color: #60a5fa; }
+      .muted { color: #9ca3af; font-size: 13px; }
+      code { background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(148, 163, 184, 0.18); padding: 2px 6px; border-radius: 6px; }
+      .kv { display: grid; grid-template-columns: 160px 1fr; gap: 6px 10px; margin-top: 14px; }
+      .k { color: #9ca3af; }
+      .v { color: #f9fafb; overflow-wrap: anywhere; }
+      .danger { color: #fca5a5; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>sbcwallet — Multi-tenant Loyalty Demo</h1>
+      <p class="muted">
+        Each business can provide its own theme/logo. Users can add a card using their own <code>memberId</code>.
+      </p>
+
+      <div class="card">
+        <div class="row">
+          <input id="bizId" placeholder="businessId (optional)" />
+          <input id="bizName" placeholder="business name" />
+          <input id="programName" placeholder="program name" />
+          <input id="pointsLabel" placeholder="points label" />
+        </div>
+        <div class="row" style="margin-top: 10px;">
+          <input id="logoUrl" placeholder="logoUrl (https://...)" />
+          <input id="googleBg" placeholder="googleBg (#111827)" />
+          <input id="googleIssuer" placeholder="googleIssuerName" />
+        </div>
+        <div class="row" style="margin-top: 10px;">
+          <input id="locations" placeholder='locations: "lat,lng;lat,lng"' />
+          <input id="countryCode" placeholder="countryCode (e.g. OM)" />
+          <input id="homepageUrl" placeholder="homepageUrl (https://...)" />
+        </div>
+        <div class="row" style="margin-top: 10px;">
+          <textarea id="googleClassOverrides" placeholder='googleClassOverrides (JSON)\nExample: {"reviewStatus":"UNDER_REVIEW"}'></textarea>
+          <textarea id="applePassOverrides" placeholder='applePassOverrides (JSON)\nExample: {"webServiceURL":"https://api.example.com/pkpass","authenticationToken":"..."}'></textarea>
+        </div>
+        <div class="row" style="margin-top: 10px;">
+          <button id="btnCreateBiz">Create/Update Business</button>
+          <span class="muted" id="bizOut">—</span>
+        </div>
+
+        <hr style="border:0;border-top:1px solid rgba(148,163,184,0.18);margin:16px 0;" />
+
+        <div class="row">
+          <input id="claimBizId" placeholder="businessId" />
+          <input id="memberId" placeholder="memberId (user's own id)" />
+          <input id="fullName" placeholder="fullName (optional)" />
+          <button id="btnClaim">Get Save URL</button>
+        </div>
+
+        <div class="row" style="margin-top: 10px;">
+          <textarea id="googleObjectOverrides" placeholder='googleObjectOverrides (JSON)\nExample: {"linksModuleData":{"uris":[{"uri":"https://example.com","description":"Website"}]}}'></textarea>
+        </div>
+
+        <div class="row" style="margin-top: 10px;">
+          <input id="delta" type="number" placeholder="delta (e.g. +10 / -1)" />
+          <button id="btnDelta">Update Points (delta)</button>
+          <input id="setPoints" type="number" min="0" placeholder="setPoints" />
+          <button id="btnSet">Set Points</button>
+        </div>
+
+        <div class="row" style="margin-top: 10px;">
+          <input id="msgHeader" placeholder="message header (optional)" />
+          <input id="msgBody" placeholder="message body" />
+          <button id="btnMsg">Send Wallet Message</button>
+          <span class="muted">(Google Wallet addMessage)</span>
+        </div>
+
+        <div class="kv">
+          <div class="k">Card ID</div>
+          <div class="v" id="cardId">—</div>
+
+          <div class="k">Save URL</div>
+          <div class="v"><a id="saveUrl" href="#" target="_blank" rel="noreferrer">—</a></div>
+
+          <div class="k">Points</div>
+          <div class="v" id="points">—</div>
+        </div>
+
+        <p id="err" class="muted danger" style="display:none;margin-top:12px;"></p>
+      </div>
+
+      <p class="muted" style="margin-top: 14px;">
+        Note: to actually add the card on a device, you must set <code>GOOGLE_ISSUER_ID</code> and <code>GOOGLE_SA_JSON</code>.
+      </p>
+    </div>
+
+    <script>
+      const el = id => document.getElementById(id)
+      const setErr = msg => {
+        const e = el('err')
+        if (!msg) { e.style.display='none'; e.textContent=''; return }
+        e.style.display='block'; e.textContent = msg
+      }
+
+      const readJsonOrUndefined = (raw) => {
+        const s = String(raw || '').trim()
+        if (!s) return undefined
+        try {
+          return JSON.parse(s)
+        } catch {
+          throw new Error('Invalid JSON in overrides field')
+        }
+      }
+
+      const parseLocations = (raw) => {
+        const s = String(raw || '').trim()
+        if (!s) return undefined
+        const pairs = s.split(';').map(p => p.trim()).filter(Boolean)
+        const out = []
+        for (const pair of pairs) {
+          const [latStr, lngStr] = pair.split(',').map(x => x.trim())
+          const latitude = Number(latStr)
+          const longitude = Number(lngStr)
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            throw new Error('Invalid locations format. Use: "lat,lng;lat,lng"')
+          }
+          out.push({ latitude, longitude })
+        }
+        return out.length ? out : undefined
+      }
+
+      async function api(path, body) {
+        const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body || {}) })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data?.error || `Request failed: ${res.status}`)
+        return data
+      }
+
+      el('btnCreateBiz').addEventListener('click', async () => {
+        try {
+          setErr('')
+          const out = await api('/business', {
+            businessId: el('bizId').value || undefined,
+            name: el('bizName').value || undefined,
+            programName: el('programName').value || undefined,
+            pointsLabel: el('pointsLabel').value || undefined,
+            logoUrl: el('logoUrl').value || undefined,
+            googleBg: el('googleBg').value || undefined,
+            googleIssuerName: el('googleIssuer').value || undefined,
+            locations: parseLocations(el('locations').value),
+            countryCode: el('countryCode').value || undefined,
+            homepageUrl: el('homepageUrl').value || undefined,
+            googleClassOverrides: readJsonOrUndefined(el('googleClassOverrides').value),
+            applePassOverrides: readJsonOrUndefined(el('applePassOverrides').value)
+          })
+          el('bizOut').textContent = `businessId: ${out.businessId}`
+          el('claimBizId').value = out.businessId
+        } catch (e) {
+          setErr(e.message)
+        }
+      })
+
+      el('btnClaim').addEventListener('click', async () => {
+        try {
+          setErr('')
+          const out = await api('/wallet/save', {
+            businessId: el('claimBizId').value,
+            memberId: el('memberId').value,
+            fullName: el('fullName').value || undefined,
+            googleObjectOverrides: readJsonOrUndefined(el('googleObjectOverrides').value),
+            applePassOverrides: readJsonOrUndefined(el('applePassOverrides').value)
+          })
+          el('cardId').textContent = out?.card?.id || '—'
+          el('points').textContent = String(out?.card?.points ?? '0')
+          const a = el('saveUrl')
+          a.textContent = out?.saveUrl || '—'
+          a.href = out?.saveUrl || '#'
+        } catch (e) {
+          setErr(e.message)
+        }
+      })
+
+      el('btnDelta').addEventListener('click', async () => {
+        try {
+          setErr('')
+          const businessId = el('claimBizId').value
+          const memberId = el('memberId').value
+          const delta = Number(el('delta').value)
+          if (!Number.isFinite(delta) || delta === 0) throw new Error('Enter a non-zero delta')
+          const out = await api('/points', { businessId, memberId, delta })
+          el('cardId').textContent = out?.cardId || el('cardId').textContent
+          el('points').textContent = String(out?.points ?? '0')
+          const a = el('saveUrl')
+          a.textContent = out?.saveUrl || a.textContent
+          a.href = out?.saveUrl || a.href
+        } catch (e) {
+          setErr(e.message)
+        }
+      })
+
+      el('btnSet').addEventListener('click', async () => {
+        try {
+          setErr('')
+          const businessId = el('claimBizId').value
+          const memberId = el('memberId').value
+          const setPoints = Number(el('setPoints').value)
+          if (!Number.isFinite(setPoints) || setPoints < 0) throw new Error('Enter a non-negative setPoints')
+          const out = await api('/points', { businessId, memberId, setPoints })
+          el('cardId').textContent = out?.cardId || el('cardId').textContent
+          el('points').textContent = String(out?.points ?? '0')
+          const a = el('saveUrl')
+          a.textContent = out?.saveUrl || a.textContent
+          a.href = out?.saveUrl || a.href
+        } catch (e) {
+          setErr(e.message)
+        }
+      })
+
+      el('btnMsg').addEventListener('click', async () => {
+        try {
+          setErr('')
+          const businessId = el('claimBizId').value
+          const memberId = el('memberId').value
+          const header = el('msgHeader').value || undefined
+          const body = el('msgBody').value
+          if (!body) throw new Error('Enter a message body')
+          const out = await api('/message', { businessId, memberId, header, body })
+          if (out?.objectId) {
+            el('bizOut').textContent = `message sent to: ${out.objectId}`
+          }
+        } catch (e) {
+          setErr(e.message)
+        }
+      })
+    </script>
+  </body>
+</html>

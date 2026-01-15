@@ -9,6 +9,41 @@ import {
 } from '../src/index.js'
 
 describe('Loyalty - multi-tenant issuance', () => {
+  it('propagates per-business wallet design into program metadata', async () => {
+    const biz = createBusiness({
+      name: 'Biz Themed',
+      wallet: {
+        googleWallet: {
+          issuerName: 'Biz Themed Inc',
+          backgroundColor: '#FF00AA',
+          logoUrl: 'https://example.com/logo.png'
+        },
+        appleWallet: {
+          backgroundColor: 'rgb(0, 0, 0)',
+          logoText: 'Biz Themed'
+        }
+      }
+    })
+
+    const program = await createLoyaltyProgram({
+      businessId: biz.id,
+      metadata: {
+        googleWallet: {
+          // program-level override should win
+          backgroundColor: '#111827'
+        }
+      }
+    })
+
+    const gw = (program.metadata as any)?.googleWallet
+    expect(gw.issuerName).toBe('Biz Themed Inc')
+    expect(gw.backgroundColor).toBe('#111827')
+    expect(gw.logoUrl).toBe('https://example.com/logo.png')
+
+    const aw = (program.metadata as any)?.appleWallet
+    expect(aw.logoText).toBe('Biz Themed')
+  })
+
   it('issues a loyalty card with memberId QR and updates points', async () => {
     const biz = createBusiness({ name: 'Biz A', pointsLabel: 'Points' })
     const program = await createLoyaltyProgram({ businessId: biz.id })

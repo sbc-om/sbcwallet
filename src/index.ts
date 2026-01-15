@@ -10,6 +10,7 @@ export {
   createLoyaltyProgram,
   issueLoyaltyCard,
   updateLoyaltyPoints,
+  pushLoyaltyMessage,
   getPkpassBuffer,
   getGoogleObject,
   listProfiles,
@@ -49,6 +50,7 @@ export type {
   CreateLoyaltyProgramInput,
   IssueLoyaltyCardInput,
   UpdateLoyaltyPointsInput,
+  PushLoyaltyMessageInput,
   ApplePassConfig,
   ApplePassField,
   ApplePassTemplate,
@@ -70,5 +72,6 @@ export {
   CreateCustomerAccountInputSchema,
   CreateLoyaltyProgramInputSchema,
   IssueLoyaltyCardInputSchema,
-  UpdateLoyaltyPointsInputSchema
+  UpdateLoyaltyPointsInputSchema,
+  PushLoyaltyMessageInputSchema
 } from './types.js'
