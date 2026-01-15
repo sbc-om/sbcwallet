@@ -1,6 +1,6 @@
 {
   "name": "sbcwallet",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Unified Wallet-Pass SDK for Real-World Credentials",
   "type": "module",
   "sideEffects": false,
