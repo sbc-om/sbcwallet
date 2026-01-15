@@ -8,20 +8,20 @@ import {
 } from '../src/index.js'
 
 async function main() {
-  console.log('🎫 sbcwallet Loyalty demo\n')
+  console.log('🎫 sbc Loyalty demo\n')
 
   // 1) Business defines its loyalty program
   const business = createBusiness({
-    name: 'SBC Coffee',
-    programName: 'SBC Coffee Rewards',
-    pointsLabel: 'Beans'
+    name: 'SBC',
+    programName: 'SBC Rewards',
+    pointsLabel: 'points'
   })
 
   const program = await createLoyaltyProgram({
     businessId: business.id,
     site: 'Downtown Branch',
     countryCode: 'IR',
-    homepageUrl: 'https://example.com',
+    homepageUrl: 'https://sbc.om',
     locations: [
       { latitude: 35.6892, longitude: 51.389 },
       { latitude: 35.7000, longitude: 51.4000 }
@@ -29,7 +29,7 @@ async function main() {
     metadata: {
       // Optional Google Wallet class/object customization (public URLs required for images)
       googleWallet: {
-        issuerName: 'SBC Coffee',
+        issuerName: 'SBC',
         backgroundColor: '#111827'
       }
     }

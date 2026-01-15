@@ -1,0 +1,19 @@
+# Defense-in-depth: even though package.json "files" restricts publishing,
+# keep secrets and dev-only assets out of npm tarballs.
+
+certs/
+examples/
+scripts/
+src/
+tests/
+*.ts
+*.tsx
+*.map
+
+# Local state / logs
+*.log
+examples/.loyalty-fixed-state.json
+
+# Editor / OS
+.vscode/
+.DS_Store

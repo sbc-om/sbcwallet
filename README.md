@@ -16,7 +16,11 @@ It standardizes claim flows (like PES → TO) and status pipelines (ISSUED → P
 
 ## 🚀 Quickstart
 
-```jsnpm install sbcwallet
+```sh
+npm install sbcwallet
+```
+
+```js
 
 import { createParentSchedule, createChildTicket, getPkpassBuffer } from 'sbcwallet'
 
@@ -55,7 +59,7 @@ import {
 	getGoogleObject
 } from 'sbcwallet'
 
-const biz = createBusiness({ name: 'SBC Coffee', pointsLabel: 'Beans' })
+const biz = createBusiness({ name: 'SBC', pointsLabel: 'points' })
 await createLoyaltyProgram({ businessId: biz.id })
 
 const customer = createCustomerAccount({ businessId: biz.id, fullName: 'Alice' })

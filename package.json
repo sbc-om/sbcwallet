@@ -3,14 +3,32 @@
   "version": "0.0.1",
   "description": "Unified Wallet-Pass SDK for Real-World Credentials",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "clean": "node scripts/clean-dist.js",
     "build": "tsc",
     "postbuild": "node scripts/copy-assets.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "npm run typecheck",
+    "prepack": "npm run clean && npm run build",
+    "preversion": "npm run test && npm run typecheck",
+    "bump:patch": "npm version patch",
+    "bump:minor": "npm version minor",
+    "bump:major": "npm version major",
+    "publish:npm": "npm publish",
     "loyalty:issue": "npm run build && node examples/loyalty-google-issue.js",
     "loyalty:server": "npm run build && node examples/loyalty-admin-server.js",
     "loyalty:server:fixed": "npm run build && node examples/loyalty-fixed-card-server.js"
@@ -24,9 +42,7 @@
     "verifiable"
   ],
   "dependencies": {
-    "@types/jsonwebtoken": "^9.0.10",
     "canvas": "^3.2.0",
-    "dotenv": "^17.2.3",
     "google-auth-library": "^10.4.1",
     "jsonwebtoken": "^9.0.2",
     "passkit-generator": "^3.5.0",
@@ -34,8 +50,10 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.10.0",
     "@types/qrcode": "^1.5.5",
+    "dotenv": "^17.2.3",
     "typescript": "^5.6.3",
     "vitest": "^1.6.0"
   },

@@ -62,8 +62,8 @@ async function main() {
 
   // 1) Create tenant + loyalty program
   const business = createBusiness({
-    name: process.env.LOYALTY_BUSINESS_NAME || 'SBC Coffee',
-    programName: process.env.LOYALTY_PROGRAM_NAME || 'SBC Coffee Rewards',
+    name: process.env.LOYALTY_BUSINESS_NAME || 'SBC',
+    programName: process.env.LOYALTY_PROGRAM_NAME || 'SBC Rewards',
     pointsLabel: process.env.LOYALTY_POINTS_LABEL || 'Points'
   })
 
