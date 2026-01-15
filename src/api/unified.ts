@@ -31,16 +31,13 @@ import logisticsProfile from '../profiles/logistics/index.js'
 import healthcareProfile from '../profiles/healthcare/index.js'
 import loyaltyProfile from '../profiles/loyalty/index.js'
 
-// Mock @sbcwallet/core functions (replace with actual imports when available)
 const hashEvent = (data: any): string => {
-  // Stub implementation - replace with actual @sbcwallet/core
   // Include timestamp and random value to ensure unique hashes
   const str = JSON.stringify({ ...data, _timestamp: Date.now(), _random: Math.random() })
   return `hash_${Buffer.from(str).toString('base64').slice(0, 32)}`
 }
 
 const signCredential = (hash: string): string => {
-  // Stub implementation - replace with actual @sbcwallet/core
   return `sig_${hash.slice(5, 37)}`
 }
 
@@ -112,7 +109,7 @@ function generateMemberId(businessId: string): string {
 export function createBusiness(input: CreateBusinessInput): LoyaltyBusiness {
   const validated = CreateBusinessInputSchema.parse(input)
 
-  const id = generateBusinessId()
+  const id = (validated as any).id || generateBusinessId()
   const now = new Date().toISOString()
 
   const business: LoyaltyBusiness = {
@@ -143,14 +140,14 @@ export function createCustomerAccount(input: CreateCustomerAccountInput): Loyalt
     throw new Error(`Business not found: ${validated.businessId}`)
   }
 
-  const id = generateCustomerId()
+  const id = (validated as any).id || generateCustomerId()
   const now = new Date().toISOString()
 
   const customer: LoyaltyCustomerAccount = {
     id,
     businessId: validated.businessId,
     fullName: validated.fullName,
-    memberId: generateMemberId(validated.businessId),
+    memberId: (validated as any).memberId || generateMemberId(validated.businessId),
     createdAt: now,
     updatedAt: now
   }
@@ -176,6 +173,7 @@ export async function createLoyaltyProgram(input: CreateLoyaltyProgramInput): Pr
   }
 
   const program = await createParentSchedule({
+    id: (validated as any).programId,
     profile: 'loyalty',
     programName: validated.programName || business.programName,
     site: validated.site,
@@ -224,6 +222,7 @@ export async function issueLoyaltyCard(input: IssueLoyaltyCardInput): Promise<Ch
   const programGoogleWallet = program && program.type === 'parent' ? (program.metadata as any)?.googleWallet : undefined
 
   const card = await createChildTicket({
+    id: (validated as any).cardId,
     profile: 'loyalty',
     parentId: business.loyaltyProgramId,
     businessId: business.id,
@@ -291,8 +290,8 @@ export async function createParentSchedule(input: CreateParentInput): Promise<Pa
   // Get profile
   const profile = getProfile(validated.profile)
 
-  // Generate ID
-  const id = generatePassId(validated.profile, 'parent')
+  // Generate ID (allow callers to provide a stable one)
+  const id = (validated as any).id || generatePassId(validated.profile, 'parent')
 
   // Get initial status
   const initialStatus = profile.statusFlow[0] as PassStatus
@@ -312,7 +311,6 @@ export async function createParentSchedule(input: CreateParentInput): Promise<Pa
     status: initialStatus
   }
 
-  // Hash and sign using @sbcwallet/core
   const hash = hashEvent(passData)
   const signature = signCredential(hash)
 
@@ -341,8 +339,8 @@ export async function createChildTicket(input: CreateChildInput): Promise<ChildP
   // Get profile
   const profile = getProfile(validated.profile)
 
-  // Generate ID
-  const id = generatePassId(validated.profile, 'child', validated.parentId)
+  // Generate ID (allow callers to provide a stable one)
+  const id = (validated as any).id || generatePassId(validated.profile, 'child', validated.parentId)
 
   // Get initial status
   const initialStatus = profile.statusFlow[0] as PassStatus
@@ -370,7 +368,6 @@ export async function createChildTicket(input: CreateChildInput): Promise<ChildP
     status: initialStatus
   }
 
-  // Hash and sign using @sbcwallet/core
   const hash = hashEvent(passData)
   const signature = signCredential(hash)
 

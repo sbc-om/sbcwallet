@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "lint": "eslint src",
     "loyalty:issue": "npm run build && node examples/loyalty-google-issue.js",
-    "loyalty:server": "npm run build && node examples/loyalty-admin-server.js"
+    "loyalty:server": "npm run build && node examples/loyalty-admin-server.js",
+    "loyalty:server:fixed": "npm run build && node examples/loyalty-fixed-card-server.js"
   },
   "keywords": [
     "wallet",
@@ -23,7 +24,6 @@
     "verifiable"
   ],
   "dependencies": {
-    "@sbcwallet/core": "^0.1.0",
     "@types/jsonwebtoken": "^9.0.10",
     "canvas": "^3.2.0",
     "dotenv": "^17.2.3",

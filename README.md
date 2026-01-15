@@ -3,7 +3,7 @@
 Unified Wallet-Pass SDK for Real-World Credentials
 
 sbcwallet is a TypeScript SDK for generating, signing, and managing verifiable passes on Apple Wallet and Google Wallet.
-Built on @sbcwallet/core, it bridges cryptographic truth and real-world credentials — enabling secure, interoperable workflows for logistics, healthcare, and beyond.
+Built on @sbcwallet, it bridges cryptographic truth and real-world credentials — enabling secure, interoperable workflows for logistics, healthcare, and beyond.
 
 ⸻
 
@@ -16,8 +16,7 @@ It standardizes claim flows (like PES → TO) and status pipelines (ISSUED → P
 
 ## 🚀 Quickstart
 
-```js
-npm install sbcwallet @sbcwallet/core
+```jsnpm install sbcwallet
 
 import { createParentSchedule, createChildTicket, getPkpassBuffer } from 'sbcwallet'
 

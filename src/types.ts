@@ -67,6 +67,7 @@ export type PassData = ParentPassData | ChildPassData
 
 // Create parent input schema
 export const CreateParentInputSchema = z.object({
+  id: z.string().min(1).optional(),
   profile: z.enum(['logistics', 'healthcare', 'loyalty']).default('logistics'),
   programName: z.string(),
   site: z.string().optional(),
@@ -79,6 +80,7 @@ export type CreateParentInput = z.infer<typeof CreateParentInputSchema>
 
 // Create child input schema
 export const CreateChildInputSchema = z.object({
+  id: z.string().min(1).optional(),
   profile: z.enum(['logistics', 'healthcare', 'loyalty']).default('logistics'),
   parentId: z.string(),
   // Logistics fields
@@ -120,6 +122,7 @@ export interface LoyaltyCustomerAccount {
 }
 
 export const CreateBusinessInputSchema = z.object({
+  id: z.string().min(1).optional(),
   name: z.string().min(1),
   programName: z.string().min(1).optional(),
   pointsLabel: z.string().min(1).optional()
@@ -128,13 +131,16 @@ export const CreateBusinessInputSchema = z.object({
 export type CreateBusinessInput = z.infer<typeof CreateBusinessInputSchema>
 
 export const CreateCustomerAccountInputSchema = z.object({
+  id: z.string().min(1).optional(),
   businessId: z.string().min(1),
-  fullName: z.string().min(1)
+  fullName: z.string().min(1),
+  memberId: z.string().min(1).optional()
 })
 
 export type CreateCustomerAccountInput = z.infer<typeof CreateCustomerAccountInputSchema>
 
 export const CreateLoyaltyProgramInputSchema = z.object({
+  programId: z.string().min(1).optional(),
   businessId: z.string().min(1),
   // Optional overrides
   programName: z.string().min(1).optional(),
@@ -152,6 +158,7 @@ export const CreateLoyaltyProgramInputSchema = z.object({
 export type CreateLoyaltyProgramInput = z.infer<typeof CreateLoyaltyProgramInputSchema>
 
 export const IssueLoyaltyCardInputSchema = z.object({
+  cardId: z.string().min(1).optional(),
   businessId: z.string().min(1),
   customerId: z.string().min(1),
   initialPoints: z.number().nonnegative().optional().default(0),

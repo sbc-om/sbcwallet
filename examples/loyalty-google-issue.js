@@ -8,10 +8,9 @@ import {
   getGoogleObject
 } from '../dist/index.js'
 
-function requireEnv(name) {
+function optionalEnv(name) {
   const value = process.env[name]
-  if (!value) throw new Error(`Missing env var: ${name}`)
-  return value
+  return value && String(value).trim() ? String(value).trim() : undefined
 }
 
 function parseLocationsFromEnv() {
@@ -38,13 +37,23 @@ function parseLocationsFromEnv() {
 }
 
 async function main() {
-  const issuerId = requireEnv('GOOGLE_ISSUER_ID')
-  const saPath = requireEnv('GOOGLE_SA_JSON')
-  const logoUrl = requireEnv('LOYALTY_LOGO_URL')
+  const issuerId = optionalEnv('GOOGLE_ISSUER_ID') || 'test-issuer'
+  const saPath = optionalEnv('GOOGLE_SA_JSON')
+  const logoUrl = optionalEnv('LOYALTY_LOGO_URL')
 
   console.log('🎫 Google Wallet Loyalty issuance (sbcwallet)')
   console.log('Issuer:', issuerId)
-  console.log('Service Account JSON:', saPath)
+  console.log('Service Account JSON:', saPath || '(not set)')
+
+  if (!optionalEnv('GOOGLE_ISSUER_ID')) {
+    console.warn('⚠️  GOOGLE_ISSUER_ID not set; using test issuer (Save URL will not work on device)')
+  }
+  if (!saPath) {
+    console.warn('⚠️  GOOGLE_SA_JSON not set; returning unsigned URL (will not work on device)')
+  }
+  if (!logoUrl) {
+    console.warn('⚠️  LOYALTY_LOGO_URL not set; loyalty class will be created without programLogo')
+  }
 
   const locations = parseLocationsFromEnv() || [
     { latitude: 35.6892, longitude: 51.389 },
