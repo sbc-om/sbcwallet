@@ -157,13 +157,6 @@ GOOGLE_SA_JSON=./google/credentials.json
 
 ⸻
 
-## 🧾 License
-
-Apache License 2.0
-© 2025 sbcwallet — open and extensible.
-
-⸻
-
 ## 🤝 Contributing
 	1.	Fork the repo
 	2.	Run npm install
@@ -171,21 +164,3 @@ Apache License 2.0
 	4.	Write tests in tests/
 	5.	Submit a PR using conventional commits
 
-⸻
-
-## 🧭 Part of the sbcwallet Ecosystem
-
-Repo	Purpose
-```sh
-sbcwallet/core	Verifiable event SDK — hashing, signing, Merkle trees
-sbcwallet/pass	Wallet-pass abstraction over Core (this repo)
-sbcwallet/wallet	Reference logistics PWA & API
-sbcwallet/id	Hosted identity & orchestration layer (SaaS)
-```
-
-⸻
-
-“sbcwallet Pass connects cryptographic truth with human experience —
-turning every credential into a verifiable story.”
-
-Reflection: evidence ✓ logic consistent brevity optimized
