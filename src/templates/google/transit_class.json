@@ -1,0 +1,24 @@
+{
+  "id": "",
+  "issuerName": "",
+  "reviewStatus": "UNDER_REVIEW",
+  "transitType": "RAIL",
+  "logo": {
+    "sourceUri": {
+      "uri": ""
+    }
+  },
+  "transitOperatorName": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "languageOverride": "en",
+  "hexBackgroundColor": "#1a73e8",
+  "countryCode": "US",
+  "homepageUri": {
+    "uri": "",
+    "description": "Website"
+  }
+}

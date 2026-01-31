@@ -1,0 +1,81 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Coupon",
+  "backgroundColor": "rgb(220, 53, 69)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(255, 220, 220)",
+  "logoText": "sbcwallet",
+  "coupon": {
+    "headerFields": [
+      {
+        "key": "discount",
+        "label": "OFF",
+        "value": ""
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "offerTitle",
+        "label": "OFFER",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "storeName",
+        "label": "STORE",
+        "value": ""
+      },
+      {
+        "key": "promoCode",
+        "label": "CODE",
+        "value": ""
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "validFrom",
+        "label": "VALID FROM",
+        "value": ""
+      },
+      {
+        "key": "expires",
+        "label": "EXPIRES",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "terms",
+        "label": "Terms & Conditions",
+        "value": ""
+      },
+      {
+        "key": "restrictions",
+        "label": "Restrictions",
+        "value": ""
+      },
+      {
+        "key": "support",
+        "label": "Support",
+        "value": ""
+      },
+      {
+        "key": "website",
+        "label": "Website",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ]
+}

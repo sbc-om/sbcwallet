@@ -1,0 +1,71 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "passengerType": "SINGLE_PASSENGER",
+  "passengerNames": "",
+  "tripType": "ONE_WAY",
+  "ticketStatus": "ACTIVE",
+  "customTicketStatus": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "concessionCategory": "ADULT",
+  "ticketLegs": [
+    {
+      "originStationCode": "",
+      "originName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      },
+      "destinationStationCode": "",
+      "destinationName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      },
+      "departureDateTime": "",
+      "arrivalDateTime": "",
+      "fareName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      },
+      "carriage": "",
+      "platform": "",
+      "zone": "",
+      "ticketSeat": {
+        "seat": {
+          "defaultValue": {
+            "language": "en-US",
+            "value": ""
+          }
+        },
+        "coach": ""
+      },
+      "transitOperatorName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      },
+      "transitTerminusName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      }
+    }
+  ],
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  },
+  "hexBackgroundColor": "#1a73e8"
+}

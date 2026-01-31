@@ -1,0 +1,44 @@
+{
+  "id": "",
+  "issuerName": "",
+  "reviewStatus": "UNDER_REVIEW",
+  "provider": "",
+  "title": "",
+  "redemptionChannel": "BOTH",
+  "hexBackgroundColor": "#dc3545",
+  "titleImage": {
+    "sourceUri": {
+      "uri": ""
+    }
+  },
+  "details": "",
+  "finePrint": "",
+  "helpUri": {
+    "uri": "",
+    "description": "Help"
+  },
+  "localizedTitle": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "localizedProvider": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "localizedDetails": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "localizedFinePrint": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  }
+}

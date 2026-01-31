@@ -1,0 +1,43 @@
+{
+  "id": "",
+  "issuerName": "",
+  "reviewStatus": "UNDER_REVIEW",
+  "localScheduledDepartureDateTime": "",
+  "localBoardingDateTime": "",
+  "localEstimatedOrActualDepartureDateTime": "",
+  "localScheduledArrivalDateTime": "",
+  "flightHeader": {
+    "carrier": {
+      "carrierIataCode": "",
+      "airlineName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      },
+      "airlineLogo": {
+        "sourceUri": {
+          "uri": ""
+        }
+      }
+    },
+    "flightNumber": "",
+    "operatingCarrier": {
+      "carrierIataCode": ""
+    },
+    "operatingFlightNumber": ""
+  },
+  "origin": {
+    "airportIataCode": "",
+    "terminal": "",
+    "gate": ""
+  },
+  "destination": {
+    "airportIataCode": "",
+    "terminal": "",
+    "gate": ""
+  },
+  "flightStatus": "SCHEDULED",
+  "hexBackgroundColor": "#005293",
+  "countryCode": "US"
+}

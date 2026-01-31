@@ -1,0 +1,30 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "passengerName": "",
+  "boardingAndSeatingInfo": {
+    "boardingGroup": "",
+    "seatNumber": "",
+    "seatClass": "",
+    "boardingDoor": ""
+  },
+  "reservationInfo": {
+    "confirmationCode": "",
+    "eticketNumber": "",
+    "frequentFlyerInfo": {
+      "frequentFlyerProgramName": {
+        "defaultValue": {
+          "language": "en-US",
+          "value": ""
+        }
+      },
+      "frequentFlyerNumber": ""
+    }
+  },
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  },
+  "hexBackgroundColor": "#005293"
+}

@@ -1,0 +1,110 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Boarding Pass",
+  "backgroundColor": "rgb(0, 82, 147)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(200, 220, 255)",
+  "logoText": "sbcwallet",
+  "boardingPass": {
+    "transitType": "PKTransitTypeAir",
+    "headerFields": [
+      {
+        "key": "gate",
+        "label": "GATE",
+        "value": ""
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "origin",
+        "label": "",
+        "value": ""
+      },
+      {
+        "key": "destination",
+        "label": "",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "passenger",
+        "label": "PASSENGER",
+        "value": ""
+      },
+      {
+        "key": "class",
+        "label": "CLASS",
+        "value": ""
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "flightNumber",
+        "label": "FLIGHT",
+        "value": ""
+      },
+      {
+        "key": "date",
+        "label": "DATE",
+        "value": ""
+      },
+      {
+        "key": "boardingTime",
+        "label": "BOARDING",
+        "value": ""
+      },
+      {
+        "key": "seat",
+        "label": "SEAT",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "confirmationCode",
+        "label": "Confirmation Code",
+        "value": ""
+      },
+      {
+        "key": "boardingGroup",
+        "label": "Boarding Group",
+        "value": ""
+      },
+      {
+        "key": "departureTerminal",
+        "label": "Departure Terminal",
+        "value": ""
+      },
+      {
+        "key": "arrivalTerminal",
+        "label": "Arrival Terminal",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ],
+  "semantics": {
+    "airlineCode": "",
+    "flightNumber": "",
+    "departureAirportCode": "",
+    "arrivalAirportCode": "",
+    "departureGate": "",
+    "boardingGroup": "",
+    "seatNumber": "",
+    "passengerName": {
+      "familyName": "",
+      "givenName": ""
+    }
+  }
+}

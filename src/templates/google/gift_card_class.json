@@ -1,0 +1,32 @@
+{
+  "id": "",
+  "issuerName": "",
+  "reviewStatus": "UNDER_REVIEW",
+  "merchantName": "",
+  "programLogo": {
+    "sourceUri": {
+      "uri": ""
+    }
+  },
+  "pinLabel": "PIN",
+  "eventNumberLabel": "Event #",
+  "allowMultipleUsersPerObject": false,
+  "hexBackgroundColor": "#111827",
+  "countryCode": "US",
+  "homepageUri": {
+    "uri": "",
+    "description": "Check Balance"
+  },
+  "localizedMerchantName": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "localizedPinLabel": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": "PIN"
+    }
+  }
+}

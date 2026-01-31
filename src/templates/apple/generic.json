@@ -1,0 +1,76 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Generic Pass",
+  "backgroundColor": "rgb(74, 144, 226)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(200, 220, 255)",
+  "logoText": "sbcwallet",
+  "generic": {
+    "headerFields": [
+      {
+        "key": "type",
+        "label": "TYPE",
+        "value": ""
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "title",
+        "label": "",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "subtitle",
+        "label": "",
+        "value": ""
+      },
+      {
+        "key": "status",
+        "label": "STATUS",
+        "value": ""
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "field1",
+        "label": "",
+        "value": ""
+      },
+      {
+        "key": "field2",
+        "label": "",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "passId",
+        "label": "Pass ID",
+        "value": ""
+      },
+      {
+        "key": "details",
+        "label": "Details",
+        "value": ""
+      },
+      {
+        "key": "support",
+        "label": "Support",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ]
+}

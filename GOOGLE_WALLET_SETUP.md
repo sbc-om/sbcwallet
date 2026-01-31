@@ -453,13 +453,348 @@ export class GoogleWalletAdapter {
 
 ---
 
+## Google Wallet Pass Types
+
+Google Wallet supports multiple pass types organized by use case:
+
+### 🛒 Retail Passes
+
+#### 1. 💳 Loyalty Card (`LoyaltyObject`)
+For loyalty programs, rewards cards, and membership programs.
+
+| Field | Description |
+|-------|-------------|
+| `accountName` | Member name |
+| `accountId` | Member ID/number |
+| `loyaltyPoints` | Points balance |
+| `secondaryLoyaltyPoints` | Secondary currency |
+| `programName` | Loyalty program name |
+
+**Key Features:**
+- Real-time points updates
+- Location-based notifications
+- Linked offers and rewards
+- Tier status display
+
+```json
+{
+  "id": "ISSUER_ID.loyalty-12345",
+  "classId": "ISSUER_ID.loyalty-class",
+  "accountName": "John Doe",
+  "accountId": "12345678",
+  "loyaltyPoints": {
+    "balance": {"int": 2450},
+    "label": "Points"
+  },
+  "barcode": {
+    "type": "QR_CODE",
+    "value": "12345678"
+  }
+}
+```
+
+---
+
+#### 2. 🎁 Gift Card (`GiftCardObject`)
+For gift cards, store credit, and prepaid cards.
+
+| Field | Description |
+|-------|-------------|
+| `cardNumber` | Gift card number |
+| `pin` | PIN (if applicable) |
+| `balance` | Current balance |
+| `balanceUpdateTime` | Last update time |
+| `eventNumber` | Event/promo code |
+
+**Key Features:**
+- Balance display and updates
+- PIN masking option
+- Merchant branding
+- Transaction history
+
+```json
+{
+  "id": "ISSUER_ID.giftcard-67890",
+  "classId": "ISSUER_ID.giftcard-class",
+  "cardNumber": "1234-5678-9012-3456",
+  "balance": {
+    "currencyCode": "USD",
+    "micros": 50000000
+  },
+  "barcode": {
+    "type": "CODE_128",
+    "value": "1234567890123456"
+  }
+}
+```
+
+---
+
+#### 3. 🏷️ Offer (`OfferObject`)
+For coupons, discounts, and promotional offers.
+
+| Field | Description |
+|-------|-------------|
+| `redemptionChannel` | `ONLINE`, `INSTORE`, `BOTH` |
+| `provider` | Offer provider |
+| `shortTitle` | Brief offer title |
+| `longTitle` | Full offer description |
+| `validTimeInterval` | Start and end dates |
+
+**Key Features:**
+- Expiration tracking
+- Location-based reminders
+- Single/multi-use options
+- Barcode for redemption
+
+```json
+{
+  "id": "ISSUER_ID.offer-promo2026",
+  "classId": "ISSUER_ID.offer-class",
+  "redemptionChannel": "BOTH",
+  "shortTitle": "25% OFF",
+  "longTitle": "25% off all items - Spring Sale",
+  "validTimeInterval": {
+    "start": {"date": "2026-01-01"},
+    "end": {"date": "2026-02-28"}
+  }
+}
+```
+
+---
+
+### 🎫 Tickets & Events
+
+#### 4. 🎟️ Event Ticket (`EventTicketObject`)
+For concerts, sports, movies, conferences, and any event.
+
+| Field | Description |
+|-------|-------------|
+| `ticketHolderName` | Attendee name |
+| `ticketNumber` | Ticket ID |
+| `seatInfo` | Seat details |
+| `faceValue` | Ticket price |
+| `dateTime` | Event date/time |
+
+**Key Features:**
+- Venue maps integration
+- Calendar integration
+- Multi-ticket grouping
+- Save to Photos
+
+```json
+{
+  "id": "ISSUER_ID.event-concert-2026",
+  "classId": "ISSUER_ID.event-class",
+  "ticketHolderName": "John Doe",
+  "ticketNumber": "TKT-001234",
+  "seatInfo": {
+    "seat": {"defaultValue": {"value": "A12"}},
+    "section": {"defaultValue": {"value": "VIP"}},
+    "row": {"defaultValue": {"value": "1"}}
+  }
+}
+```
+
+---
+
+#### 5. ✈️ Flight/Boarding Pass (`FlightObject`)
+For airline boarding passes.
+
+| Field | Description |
+|-------|-------------|
+| `passengerName` | Passenger details |
+| `boardingAndSeatingInfo` | Seat, group, class |
+| `reservationInfo` | PNR, booking reference |
+| `flightHeader` | Flight number, carrier |
+
+**Key Features:**
+- Real-time flight updates
+- Gate changes notifications
+- Boarding time alerts
+- Airport maps
+
+```json
+{
+  "id": "ISSUER_ID.flight-aa1234",
+  "classId": "ISSUER_ID.flight-class",
+  "passengerName": "DOE/JOHN",
+  "boardingAndSeatingInfo": {
+    "seatNumber": "12A",
+    "seatClass": "Economy",
+    "boardingGroup": "1"
+  },
+  "reservationInfo": {
+    "confirmationCode": "ABC123"
+  }
+}
+```
+
+---
+
+#### 6. 🚆 Transit Pass (`TransitObject`)
+For public transportation - trains, buses, metros.
+
+| Field | Description |
+|-------|-------------|
+| `passengerType` | Adult, child, senior |
+| `passengerNames` | Passenger list |
+| `tripType` | Single, round-trip |
+| `ticketLegs` | Route segments |
+
+**Key Features:**
+- Multi-leg trips
+- NFC tap-to-ride
+- Real-time delays
+- Station maps
+
+```json
+{
+  "id": "ISSUER_ID.transit-metro-pass",
+  "classId": "ISSUER_ID.transit-class",
+  "passengerType": "ADULT",
+  "tripType": "ROUND_TRIP",
+  "ticketLegs": [{
+    "originName": {"defaultValue": {"value": "Central Station"}},
+    "destinationName": {"defaultValue": {"value": "Airport Terminal"}},
+    "departureDateTime": "2026-01-31T08:30:00"
+  }]
+}
+```
+
+---
+
+### 🔑 Access & ID
+
+#### 7. 🚗 Generic Private Pass (`GenericPrivatePassObject`)
+For ID cards, keys, and access credentials.
+
+| Field | Description |
+|-------|-------------|
+| `cardTitle` | Pass title |
+| `header` | Top header text |
+| `subheader` | Subheader text |
+| `textModulesData` | Custom text fields |
+| `imageModulesData` | Custom images |
+
+**Key Features:**
+- NFC access support
+- Photo ID display
+- Custom fields
+- Privacy controls
+
+---
+
+### 🏥 Health
+
+#### 8. 💉 Vaccination Card
+For COVID-19 and other vaccination records.
+
+**Key Features:**
+- SMART Health Card support
+- QR verification
+- Privacy-focused
+- Easy sharing
+
+---
+
+### 📋 Generic Pass (`GenericObject`)
+
+For anything that doesn't fit other categories - the most flexible option!
+
+| Field | Description |
+|-------|-------------|
+| `cardTitle` | Main title |
+| `header` | Header text |
+| `subheader` | Subheader text |
+| `textModulesData` | Custom text sections |
+| `linksModuleData` | Links to websites |
+| `imageModulesData` | Custom images |
+| `barcode` | QR, CODE_128, etc. |
+| `hexBackgroundColor` | Background color |
+
+**Perfect For:**
+- Transport orders
+- Insurance cards
+- Parking passes
+- Gym memberships
+- Library cards
+- Any custom pass!
+
+```json
+{
+  "id": "ISSUER_ID.generic-to-001",
+  "classId": "ISSUER_ID.generic-class",
+  "cardTitle": {
+    "defaultValue": {"value": "Transport Order"}
+  },
+  "header": {
+    "defaultValue": {"value": "TO-2026-01-31-001"}
+  },
+  "textModulesData": [
+    {"id": "plate", "header": "Plate", "body": "ABC-123"},
+    {"id": "carrier", "header": "Carrier", "body": "Fast Transport"},
+    {"id": "window", "header": "Time Window", "body": "08:00 - 12:00"}
+  ],
+  "barcode": {
+    "type": "QR_CODE",
+    "value": "TO-2026-01-31-001"
+  },
+  "hexBackgroundColor": "#1a73e8"
+}
+```
+
+---
+
+## Pass Type Comparison
+
+| Pass Type | API Object | Best For | Special Features |
+|-----------|------------|----------|------------------|
+| **Loyalty** | `LoyaltyObject` | Rewards programs | Points, tiers, linked offers |
+| **Gift Card** | `GiftCardObject` | Store credit | Balance, PIN support |
+| **Offer** | `OfferObject` | Coupons, discounts | Expiration, redemption |
+| **Event Ticket** | `EventTicketObject` | Concerts, sports | Venue maps, calendar |
+| **Flight** | `FlightObject` | Boarding passes | Flight tracking, gates |
+| **Transit** | `TransitObject` | Public transport | NFC, multi-leg trips |
+| **Generic** | `GenericObject` | Everything else | Most flexible |
+
+---
+
 ## Resources
 
-- [Google Wallet API Documentation](https://developers.google.com/wallet)
-- [Generic Pass Reference](https://developers.google.com/wallet/generic/rest/v1/genericobject)
+### Official Documentation
+- [Google Wallet API Overview](https://developers.google.com/wallet)
+- [Google Wallet REST API](https://developers.google.com/wallet/generic/rest)
+- [Google Wallet Android SDK](https://developers.google.com/wallet/generic/android)
+- [Google Wallet Web Integration](https://developers.google.com/wallet/generic/web)
+
+### Pass Type Documentation
+- [Loyalty Cards](https://developers.google.com/wallet/retail/loyalty-cards)
+- [Gift Cards](https://developers.google.com/wallet/retail/gift-cards)
+- [Offers](https://developers.google.com/wallet/retail/offers)
+- [Event Tickets](https://developers.google.com/wallet/tickets/events)
+- [Flight Boarding Passes](https://developers.google.com/wallet/tickets/boarding-passes)
+- [Transit Passes](https://developers.google.com/wallet/tickets/transit-passes)
+- [Generic Passes](https://developers.google.com/wallet/generic)
+
+### API References
+- [GenericObject Reference](https://developers.google.com/wallet/generic/rest/v1/genericobject)
+- [GenericClass Reference](https://developers.google.com/wallet/generic/rest/v1/genericclass)
+- [LoyaltyObject Reference](https://developers.google.com/wallet/retail/loyalty-cards/rest/v1/loyaltyobject)
+- [EventTicketObject Reference](https://developers.google.com/wallet/tickets/events/rest/v1/eventticketobject)
+- [FlightObject Reference](https://developers.google.com/wallet/tickets/boarding-passes/rest/v1/flightobject)
+
+### Consoles & Tools
 - [Google Cloud Console](https://console.cloud.google.com)
 - [Google Pay & Wallet Console](https://pay.google.com/business/console)
-- [Sample Code Repository](https://github.com/google-pay/wallet-samples)
+- [Pass Visual Builder](https://developers.google.com/wallet/retail/loyalty-cards/resources/pass-builder)
+- [Wallet API Codelab](https://developers.google.com/wallet/generic/resources/codelabs)
+
+### Code Samples & Libraries
+- [REST API Samples (All Languages)](https://github.com/google-wallet/rest-samples)
+- [Android SDK Samples](https://github.com/google-wallet/android)
+- [Web Integration Samples](https://github.com/google-wallet/web)
+- [Pass Converter (Cross-platform)](https://github.com/nickcmiller/pass-converter)
 
 ---
 

@@ -1,0 +1,27 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "cardNumber": "",
+  "pin": "",
+  "balance": {
+    "currencyCode": "USD",
+    "micros": 0
+  },
+  "balanceUpdateTime": {
+    "date": ""
+  },
+  "eventNumber": "",
+  "barcode": {
+    "type": "CODE_128",
+    "value": ""
+  },
+  "hexBackgroundColor": "#111827",
+  "textModulesData": [
+    {
+      "id": "cardHolder",
+      "header": "Card Holder",
+      "body": ""
+    }
+  ]
+}

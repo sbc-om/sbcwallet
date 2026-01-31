@@ -1,0 +1,42 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "cardTitle": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": "Offer"
+    }
+  },
+  "header": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  },
+  "validTimeInterval": {
+    "start": {
+      "date": ""
+    },
+    "end": {
+      "date": ""
+    }
+  },
+  "hexBackgroundColor": "#dc3545",
+  "textModulesData": [
+    {
+      "id": "terms",
+      "header": "Terms & Conditions",
+      "body": ""
+    },
+    {
+      "id": "details",
+      "header": "Details",
+      "body": ""
+    }
+  ]
+}

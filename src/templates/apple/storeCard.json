@@ -1,0 +1,81 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Store Card",
+  "backgroundColor": "rgb(17, 24, 39)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(180, 180, 180)",
+  "logoText": "",
+  "storeCard": {
+    "headerFields": [
+      {
+        "key": "balance",
+        "label": "POINTS",
+        "value": "0"
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "memberName",
+        "label": "MEMBER",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "tier",
+        "label": "STATUS",
+        "value": ""
+      },
+      {
+        "key": "memberId",
+        "label": "MEMBER ID",
+        "value": ""
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "rewards",
+        "label": "REWARDS",
+        "value": ""
+      },
+      {
+        "key": "expiration",
+        "label": "EXPIRES",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "programName",
+        "label": "Program",
+        "value": ""
+      },
+      {
+        "key": "website",
+        "label": "Website",
+        "value": ""
+      },
+      {
+        "key": "terms",
+        "label": "Terms & Conditions",
+        "value": ""
+      },
+      {
+        "key": "support",
+        "label": "Support",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ]
+}

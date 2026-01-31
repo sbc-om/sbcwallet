@@ -1,0 +1,41 @@
+{
+  "id": "",
+  "issuerName": "",
+  "reviewStatus": "UNDER_REVIEW",
+  "eventName": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "venue": {
+    "name": {
+      "defaultValue": {
+        "language": "en-US",
+        "value": ""
+      }
+    },
+    "address": {
+      "defaultValue": {
+        "language": "en-US",
+        "value": ""
+      }
+    }
+  },
+  "dateTime": {
+    "start": "",
+    "end": "",
+    "doorsOpen": ""
+  },
+  "logo": {
+    "sourceUri": {
+      "uri": ""
+    }
+  },
+  "hexBackgroundColor": "#800080",
+  "countryCode": "US",
+  "homepageUri": {
+    "uri": "",
+    "description": "Event Website"
+  }
+}

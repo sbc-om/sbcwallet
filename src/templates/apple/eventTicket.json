@@ -1,0 +1,104 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "",
+  "serialNumber": "",
+  "teamIdentifier": "",
+  "organizationName": "sbcwallet",
+  "description": "Event Ticket",
+  "backgroundColor": "rgb(128, 0, 128)",
+  "foregroundColor": "rgb(255, 255, 255)",
+  "labelColor": "rgb(220, 200, 255)",
+  "logoText": "sbcwallet",
+  "eventTicket": {
+    "headerFields": [
+      {
+        "key": "date",
+        "label": "DATE",
+        "value": ""
+      }
+    ],
+    "primaryFields": [
+      {
+        "key": "eventName",
+        "label": "EVENT",
+        "value": ""
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "venue",
+        "label": "VENUE",
+        "value": ""
+      },
+      {
+        "key": "location",
+        "label": "LOCATION",
+        "value": ""
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "section",
+        "label": "SEC",
+        "value": ""
+      },
+      {
+        "key": "row",
+        "label": "ROW",
+        "value": ""
+      },
+      {
+        "key": "seat",
+        "label": "SEAT",
+        "value": ""
+      },
+      {
+        "key": "doors",
+        "label": "DOORS",
+        "value": ""
+      }
+    ],
+    "backFields": [
+      {
+        "key": "ticketNumber",
+        "label": "Ticket Number",
+        "value": ""
+      },
+      {
+        "key": "purchaser",
+        "label": "Purchaser",
+        "value": ""
+      },
+      {
+        "key": "eventDetails",
+        "label": "Event Details",
+        "value": ""
+      },
+      {
+        "key": "terms",
+        "label": "Terms & Conditions",
+        "value": ""
+      }
+    ]
+  },
+  "barcodes": [
+    {
+      "message": "",
+      "format": "PKBarcodeFormatQR",
+      "messageEncoding": "iso-8859-1"
+    }
+  ],
+  "semantics": {
+    "eventName": "",
+    "eventType": "",
+    "venueLocation": {
+      "latitude": 0,
+      "longitude": 0
+    },
+    "venueAddress": "",
+    "venueName": "",
+    "doorTime": "",
+    "eventStartDate": "",
+    "eventEndDate": ""
+  }
+}

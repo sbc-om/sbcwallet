@@ -1,0 +1,38 @@
+{
+  "id": "",
+  "classId": "",
+  "state": "ACTIVE",
+  "cardTitle": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "header": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "subheader": {
+    "defaultValue": {
+      "language": "en-US",
+      "value": ""
+    }
+  },
+  "logo": {
+    "sourceUri": {
+      "uri": ""
+    }
+  },
+  "hexBackgroundColor": "#4a90e2",
+  "barcode": {
+    "type": "QR_CODE",
+    "value": ""
+  },
+  "textModulesData": [],
+  "linksModuleData": {
+    "uris": []
+  },
+  "imageModulesData": []
+}

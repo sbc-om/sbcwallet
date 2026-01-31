@@ -306,11 +306,226 @@ mkdir -p certs/images
 
 ---
 
+## Apple Wallet Pass Types
+
+Apple Wallet supports **5 types of passes**, each optimized for specific use cases:
+
+### 1. 🎫 Boarding Pass (`boardingPass`)
+For transportation tickets - flights, trains, buses, ferries, etc.
+
+| Field | Description |
+|-------|-------------|
+| `transitType` | `PKTransitTypeAir`, `PKTransitTypeTrain`, `PKTransitTypeBus`, `PKTransitTypeBoat`, `PKTransitTypeGeneric` |
+| `headerFields` | Gate, seat, boarding time |
+| `primaryFields` | Origin → Destination |
+| `secondaryFields` | Passenger name, class |
+| `auxiliaryFields` | Flight number, date |
+
+**Key Features:**
+- Automatic flight tracking updates
+- Maps integration for airports/stations
+- Time-relevant notifications
+- QR/Barcode scanning
+
+```json
+{
+  "boardingPass": {
+    "transitType": "PKTransitTypeAir",
+    "headerFields": [{"key": "gate", "label": "GATE", "value": "A32"}],
+    "primaryFields": [
+      {"key": "origin", "label": "MEX", "value": "Mexico City"},
+      {"key": "destination", "label": "LAX", "value": "Los Angeles"}
+    ]
+  }
+}
+```
+
+---
+
+### 2. 🎟️ Event Ticket (`eventTicket`)
+For concerts, sports, movies, conferences, and any event admission.
+
+| Field | Description |
+|-------|-------------|
+| `headerFields` | Event date/time |
+| `primaryFields` | Event name, venue |
+| `secondaryFields` | Seat, section, row |
+| `auxiliaryFields` | Door, entry time |
+
+**Key Features:**
+- Multiple upcoming events on single pass
+- Calendar integration
+- Location-based notifications
+- Poster-style design option
+
+```json
+{
+  "eventTicket": {
+    "headerFields": [{"key": "date", "label": "DATE", "value": "Jan 31, 2026"}],
+    "primaryFields": [{"key": "event", "label": "EVENT", "value": "Taylor Swift Eras Tour"}],
+    "secondaryFields": [
+      {"key": "seat", "label": "SEAT", "value": "A12"},
+      {"key": "section", "label": "SEC", "value": "VIP"}
+    ]
+  }
+}
+```
+
+---
+
+### 3. 💳 Store Card (`storeCard`)
+For loyalty cards, membership cards, gift cards, and reward programs.
+
+| Field | Description |
+|-------|-------------|
+| `headerFields` | Points balance, tier |
+| `primaryFields` | Member name, ID |
+| `secondaryFields` | Rewards, status |
+| `auxiliaryFields` | Expiration, offers |
+
+**Key Features:**
+- Balance/points display
+- Automatic updates
+- Store location notifications
+- Grouped with related offers
+
+```json
+{
+  "storeCard": {
+    "headerFields": [{"key": "balance", "label": "POINTS", "value": "2,450"}],
+    "primaryFields": [{"key": "name", "label": "MEMBER", "value": "John Doe"}],
+    "secondaryFields": [{"key": "tier", "label": "STATUS", "value": "Gold"}]
+  }
+}
+```
+
+---
+
+### 4. 🏷️ Coupon (`coupon`)
+For discounts, promotional offers, and special deals.
+
+| Field | Description |
+|-------|-------------|
+| `headerFields` | Discount amount/percentage |
+| `primaryFields` | Offer description |
+| `secondaryFields` | Terms, conditions |
+| `auxiliaryFields` | Expiration date |
+
+**Key Features:**
+- Expiration date tracking
+- Location-based reminders
+- Single/multiple use options
+- Auto-archive after redemption
+
+```json
+{
+  "coupon": {
+    "headerFields": [{"key": "discount", "label": "OFF", "value": "25%"}],
+    "primaryFields": [{"key": "offer", "label": "OFFER", "value": "Spring Sale - All Items"}],
+    "auxiliaryFields": [{"key": "expires", "label": "EXPIRES", "value": "Feb 28, 2026"}]
+  }
+}
+```
+
+---
+
+### 5. 📋 Generic Pass (`generic`)
+For any pass that doesn't fit other categories - ID cards, insurance cards, parking passes, gym memberships, etc.
+
+| Field | Description |
+|-------|-------------|
+| `headerFields` | Category, type |
+| `primaryFields` | Main identifier |
+| `secondaryFields` | Details |
+| `auxiliaryFields` | Additional info |
+
+**Key Features:**
+- Most flexible format
+- Customizable layout
+- Works for any use case
+- Full update support
+
+```json
+{
+  "generic": {
+    "headerFields": [{"key": "type", "label": "TYPE", "value": "Transport Order"}],
+    "primaryFields": [{"key": "id", "label": "ORDER #", "value": "TO-2026-01-31-001"}],
+    "secondaryFields": [
+      {"key": "plate", "label": "PLATE", "value": "ABC-123"},
+      {"key": "carrier", "label": "CARRIER", "value": "Fast Transport"}
+    ]
+  }
+}
+```
+
+---
+
+## Pass Type Comparison
+
+| Pass Type | Best For | Visual Style | Special Features |
+|-----------|----------|--------------|------------------|
+| **Boarding Pass** | Transportation | Strip/Horizontal | Flight tracking, transit info |
+| **Event Ticket** | Events/Shows | Strip/Poster | Multiple events, calendar |
+| **Store Card** | Loyalty/Gift Cards | Strip | Balance display, location |
+| **Coupon** | Discounts/Offers | Strip | Expiration, auto-archive |
+| **Generic** | Everything else | Square | Most flexible |
+
+---
+
+## Semantic Tags
+
+Semantic tags provide machine-readable metadata for enhanced functionality:
+
+```json
+{
+  "semantics": {
+    "airlineCode": "AA",
+    "flightNumber": "1234",
+    "departureAirportCode": "MEX",
+    "arrivalAirportCode": "LAX",
+    "departureGate": "A32",
+    "boardingGroup": "1",
+    "seatNumber": "12A",
+    "passengerName": {
+      "familyName": "Doe",
+      "givenName": "John"
+    }
+  }
+}
+```
+
+---
+
 ## Resources
 
+### Official Documentation
 - [Apple Wallet Developer Guide](https://developer.apple.com/documentation/walletpasses)
 - [Pass Design Guidelines](https://developer.apple.com/design/human-interface-guidelines/wallet)
+- [Creating the Source for a Pass](https://developer.apple.com/documentation/walletpasses/creating-the-source-for-a-pass)
+- [Building a Pass](https://developer.apple.com/documentation/walletpasses/building-a-pass)
+- [Distributing and Updating a Pass](https://developer.apple.com/documentation/walletpasses/distributing-and-updating-a-pass)
+
+### Pass Type Documentation
+- [Boarding Pass - Semantic Tags](https://developer.apple.com/documentation/walletpasses/creating-an-airline-boarding-pass-using-semantic-tags)
+- [Event Ticket - Poster Style](https://developer.apple.com/documentation/walletpasses/creating-an-event-pass-using-semantic-tags)
+- [Store Card Pass](https://developer.apple.com/documentation/walletpasses/creating-a-store-card-pass)
+- [Coupon Pass](https://developer.apple.com/documentation/walletpasses/creating-a-coupon-pass)
+- [Generic Pass](https://developer.apple.com/documentation/walletpasses/creating-a-generic-pass)
+
+### API References
+- [Pass Object Reference](https://developer.apple.com/documentation/walletpasses/pass)
+- [Pass Fields Reference](https://developer.apple.com/documentation/walletpasses/passfields)
+- [Semantic Tags Reference](https://developer.apple.com/documentation/walletpasses/semantictags)
+- [Personalization Dictionary](https://developer.apple.com/documentation/walletpasses/personalizationdictionary)
+
+### Web Service (Pass Updates)
+- [Adding a Web Service to Update Passes](https://developer.apple.com/documentation/walletpasses/adding-a-web-service-to-update-passes)
+- [Register a Pass for Update Notifications](https://developer.apple.com/documentation/walletpasses/register-a-pass-for-update-notifications)
+- [Send an Updated Pass](https://developer.apple.com/documentation/walletpasses/send-an-updated-pass)
+
+### Tools & Libraries
 - [passkit-generator Documentation](https://github.com/alexandercerutti/passkit-generator)
+- [Apple PKI - Certificates](https://www.apple.com/certificateauthority/)
 - [sbcwallet Pass README](./README.md)
 
 ---
