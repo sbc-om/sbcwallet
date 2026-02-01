@@ -685,7 +685,7 @@ function generateHtmlPage(baseUrl) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍎 Apple Wallet - Real-Time Updates</title>
+  <title>🍎 Apple Wallet - Pass Management</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -696,20 +696,9 @@ function generateHtmlPage(baseUrl) {
       margin: 0;
       padding: 20px;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    h1 {
-      text-align: center;
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #a0a0a0;
-      margin-bottom: 30px;
-    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 2rem; margin-bottom: 10px; }
+    .subtitle { text-align: center; color: #a0a0a0; margin-bottom: 30px; }
     .badge {
       display: inline-block;
       background: #22c55e;
@@ -720,6 +709,27 @@ function generateHtmlPage(baseUrl) {
       font-weight: bold;
       margin-left: 8px;
     }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 10px;
+    }
+    .tab {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.05);
+      border: none;
+      border-radius: 8px 8px 0 0;
+      color: #a0a0a0;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+    .tab.active { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+    .tab:hover { background: rgba(255,255,255,0.1); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
     .card {
       background: rgba(255,255,255,0.1);
       border-radius: 16px;
@@ -727,59 +737,84 @@ function generateHtmlPage(baseUrl) {
       margin-bottom: 20px;
       backdrop-filter: blur(10px);
     }
-    .card h2 {
-      margin-top: 0;
-      font-size: 1.25rem;
-      color: #4ade80;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #d0d0d0;
-    }
-    input[type="text"], input[type="number"] {
+    .card h2 { margin-top: 0; font-size: 1.25rem; color: #4ade80; }
+    .card h3 { margin-top: 0; font-size: 1rem; color: #60a5fa; margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; color: #d0d0d0; font-size: 0.85rem; }
+    input[type="text"], input[type="number"], input[type="color"], select, textarea {
       width: 100%;
-      padding: 12px 16px;
+      padding: 10px 14px;
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 8px;
       background: rgba(0,0,0,0.3);
       color: white;
-      font-size: 1rem;
-      margin-bottom: 16px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
     }
-    input:focus {
-      outline: none;
-      border-color: #4ade80;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
+    input[type="color"] { height: 45px; padding: 4px; cursor: pointer; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #4ade80; }
+    textarea { resize: vertical; min-height: 80px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    button, .btn {
+      padding: 12px 20px;
       background: linear-gradient(135deg, #4ade80, #22c55e);
       border: none;
       border-radius: 8px;
       color: black;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
     }
-    button:hover {
-      transform: scale(1.02);
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .pass-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .pass-item-expanded {
+    button:hover, .btn:hover { transform: scale(1.02); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+    .btn-danger { background: linear-gradient(135deg, #f87171, #ef4444); }
+    .btn-small { padding: 8px 14px; font-size: 0.85rem; }
+    .pass-list { list-style: none; padding: 0; margin: 0; }
+    .pass-card {
       background: rgba(0,0,0,0.2);
       border-radius: 12px;
       padding: 20px;
       margin-bottom: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .pass-preview {
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      position: relative;
+      min-height: 200px;
+    }
+    .pass-preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 30px;
+    }
+    .pass-preview-logo {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: rgba(255,255,255,0.2);
+    }
+    .pass-preview-name { font-size: 0.85rem; opacity: 0.9; }
+    .pass-preview-member { font-size: 0.75rem; opacity: 0.7; }
+    .pass-preview-points {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .pass-preview-label { font-size: 0.7rem; opacity: 0.6; text-transform: uppercase; }
+    .pass-preview-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
     }
     .pass-header {
       display: flex;
@@ -787,279 +822,484 @@ function generateHtmlPage(baseUrl) {
       align-items: center;
       margin-bottom: 16px;
     }
-    .pass-info h3 {
-      margin: 0 0 4px 0;
-      font-size: 1.1rem;
-    }
-    .pass-info p {
-      margin: 0;
-      color: #a0a0a0;
-      font-size: 0.85rem;
-    }
+    .pass-info h4 { margin: 0 0 4px 0; font-size: 1.1rem; }
+    .pass-info p { margin: 0; color: #a0a0a0; font-size: 0.85rem; }
     .points-display {
       background: linear-gradient(135deg, #4ade80, #22c55e);
       color: black;
-      padding: 12px 20px;
+      padding: 10px 18px;
       border-radius: 25px;
       font-weight: bold;
-      font-size: 1.3rem;
-      min-width: 100px;
-      text-align: center;
+      font-size: 1.2rem;
     }
     .points-controls {
       display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
+      gap: 6px;
+      margin: 12px 0;
       flex-wrap: wrap;
     }
     .points-btn {
       flex: 1;
-      min-width: 50px;
-      padding: 12px 8px;
+      min-width: 45px;
+      padding: 10px 6px;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: transform 0.1s, opacity 0.2s;
-    }
-    .points-btn:hover:not(:disabled) {
-      transform: scale(1.05);
-    }
-    .points-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .points-btn.add {
-      background: #22c55e;
-      color: white;
-    }
-    .points-btn.subtract {
-      background: #ef4444;
-      color: white;
-    }
-    .points-btn.custom {
-      background: #3b82f6;
-      color: white;
-    }
-    .custom-points-input {
-      display: none;
-      margin-bottom: 12px;
-      gap: 8px;
-    }
-    .custom-points-input.show {
-      display: flex;
-    }
-    .custom-points-input input {
-      flex: 1;
-      margin-bottom: 0;
-    }
-    .custom-points-input button {
-      width: auto;
-      padding: 12px 24px;
-    }
-    .pass-actions {
-      display: flex;
-      gap: 8px;
-    }
-    .action-btn {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      font-size: 0.9rem;
-    }
-    .action-btn.download {
-      background: black;
-      color: white;
-    }
-    .action-btn.download:hover {
-      background: #333;
-    }
-    .realtime-notice {
-      background: rgba(34, 197, 94, 0.2);
-      border: 1px solid rgba(34, 197, 94, 0.4);
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-bottom: 12px;
       font-size: 0.85rem;
-      color: #4ade80;
-      display: flex;
+      cursor: pointer;
+    }
+    .points-btn.add { background: #22c55e; color: white; }
+    .points-btn.subtract { background: #ef4444; color: white; }
+    .points-btn.custom { background: #3b82f6; color: white; }
+    .points-btn:disabled { opacity: 0.5; }
+    .actions-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .status-badge {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
     }
-    .realtime-notice .icon {
-      font-size: 1.2rem;
-    }
-    .status-indicator {
-      display: inline-block;
+    .status-dot {
       width: 8px;
       height: 8px;
       background: #22c55e;
       border-radius: 50%;
-      margin-right: 6px;
       animation: pulse 2s infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    .devices-info {
-      font-size: 0.8rem;
-      color: #a0a0a0;
-      margin-top: 8px;
-    }
-    .instructions {
-      background: rgba(74, 222, 128, 0.1);
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      border-radius: 12px;
-      padding: 20px;
-      font-size: 0.9rem;
-    }
-    .instructions h3 {
-      margin: 0 0 16px 0;
-      color: #4ade80;
-    }
-    .instructions ol {
-      margin: 0;
-      padding-left: 20px;
-    }
-    .instructions li {
-      margin-bottom: 10px;
-      color: #d0d0d0;
-    }
-    .empty-state {
-      text-align: center;
-      color: #a0a0a0;
-      padding: 30px;
-    }
-    #passResult {
-      display: none;
-      margin-top: 16px;
-    }
-    #passResult.show {
-      display: block;
-    }
-    .update-animation {
-      animation: updatePulse 0.5s ease-out;
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .update-animation { animation: updatePulse 0.5s ease-out; }
     @keyframes updatePulse {
       0% { transform: scale(1); }
       50% { transform: scale(1.1); background: #fbbf24; }
       100% { transform: scale(1); }
     }
+    .color-preview {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .color-swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .empty-state {
+      text-align: center;
+      color: #a0a0a0;
+      padding: 40px;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 { margin-top: 0; color: #4ade80; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .modal-actions button { flex: 1; }
+    #passResult { display: none; margin-top: 16px; }
+    #passResult.show { display: block; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🍎 Apple Wallet <span class="badge">Real-Time</span></h1>
-    <p class="subtitle">${defaultBusiness?.programName || 'Loyalty Program'}</p>
+    <p class="subtitle">\${defaultBusiness?.programName || 'Loyalty Program'} - Pass Management</p>
 
-    <div class="card">
-      <h2>✨ Create New Pass</h2>
-      <form id="createForm">
-        <label for="customerName">Customer Name</label>
-        <input type="text" id="customerName" name="customerName" placeholder="Enter your name" required>
-        <button type="submit">Generate Pass</button>
-      </form>
-      <div id="passResult">
-        <div class="realtime-notice">
-          <span class="icon">🔄</span>
-          <span>Pass created with real-time updates enabled!</span>
-        </div>
-        <div class="pass-item-expanded" id="newPassItem">
-          <div class="pass-header">
-            <div class="pass-info">
-              <h3 id="newPassName"></h3>
-              <p id="newPassInfo"></p>
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('passes')">📋 Passes</button>
+      <button class="tab" onclick="showTab('create')">✨ Create New</button>
+      <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
+    </div>
+
+    <!-- Passes Tab -->
+    <div id="tab-passes" class="tab-content active">
+      <div class="card">
+        <h2>📋 Active Passes</h2>
+        <ul class="pass-list" id="passList">
+          <li class="empty-state">No passes created yet. Go to "Create New" tab.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Create Tab -->
+    <div id="tab-create" class="tab-content">
+      <div class="card">
+        <h2>✨ Create New Pass</h2>
+        <form id="createForm">
+          <div class="form-row">
+            <div>
+              <label>Customer Name *</label>
+              <input type="text" id="customerName" placeholder="Enter customer name" required>
             </div>
-            <div class="points-display" id="newPassPoints">10 pts</div>
+            <div>
+              <label>Initial Points</label>
+              <input type="number" id="initialPoints" value="10" min="0">
+            </div>
           </div>
-          <div class="pass-actions">
-            <a href="#" id="newPassDownload" class="action-btn download">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-              </svg>
-              Add to Wallet
-            </a>
+          
+          <h3>🎨 Appearance</h3>
+          <div class="form-row-3">
+            <div>
+              <label>Background Color</label>
+              <input type="color" id="bgColor" value="#111827">
+            </div>
+            <div>
+              <label>Text Color</label>
+              <input type="color" id="fgColor" value="#ffffff">
+            </div>
+            <div>
+              <label>Label Color</label>
+              <input type="color" id="labelColor" value="#b4b4b4">
+            </div>
+          </div>
+          
+          <h3>🖼️ Logo & Icon</h3>
+          <div class="form-row">
+            <div>
+              <label>Logo URL (160×50 PNG recommended)</label>
+              <input type="text" id="logoUrl" placeholder="https://example.com/logo.png">
+            </div>
+            <div>
+              <label>Icon URL (87×87 PNG recommended)</label>
+              <input type="text" id="iconUrl" placeholder="https://example.com/icon.png">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Strip Image URL (375×123 for header background)</label>
+              <input type="text" id="stripUrl" placeholder="https://example.com/strip.png">
+            </div>
+            <div>
+              <label>Thumbnail URL (90×90 for notifications)</label>
+              <input type="text" id="thumbnailUrl" placeholder="https://example.com/thumb.png">
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: #a0a0a0; margin-top: 8px;">
+            💡 Leave empty to use default images. Supports PNG, JPEG. For best results use @2x resolution.
+          </p>
+
+          <h3>📝 Pass Content</h3>
+          <div class="form-row">
+            <div>
+              <label>Program Name</label>
+              <input type="text" id="programName" value="\${defaultBusiness?.programName || 'Loyalty Program'}">
+            </div>
+            <div>
+              <label>Points Label</label>
+              <input type="text" id="pointsLabel" value="Points">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div>
+              <label>Header Field (Top Left)</label>
+              <input type="text" id="headerLabel" placeholder="e.g., MEMBER SINCE">
+            </div>
+            <div>
+              <label>Header Value</label>
+              <input type="text" id="headerValue" placeholder="e.g., 2024">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div>
+              <label>Secondary Field Label</label>
+              <input type="text" id="secondaryLabel" placeholder="e.g., Level">
+            </div>
+            <div>
+              <label>Secondary Field Value</label>
+              <input type="text" id="secondaryValue" placeholder="e.g., Gold">
+            </div>
+          </div>
+
+          <h3>📱 QR Code / Barcode</h3>
+          <div class="form-row">
+            <div>
+              <label>Barcode Type</label>
+              <select id="barcodeFormat">
+                <option value="PKBarcodeFormatQR">QR Code</option>
+                <option value="PKBarcodeFormatPDF417">PDF417</option>
+                <option value="PKBarcodeFormatAztec">Aztec</option>
+                <option value="PKBarcodeFormatCode128">Code 128</option>
+              </select>
+            </div>
+            <div>
+              <label>Barcode Message (encoded data)</label>
+              <input type="text" id="barcodeMessage" placeholder="Auto-generated if empty">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Display Text (below barcode)</label>
+              <input type="text" id="barcodeAltText" placeholder="e.g., Member ID or custom text">
+            </div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button type="submit" style="width: 100%;">Generate Pass</button>
+          </div>
+        </form>
+        
+        <div id="passResult">
+          <div class="status-badge" style="margin: 16px 0;">
+            <span class="status-dot"></span>
+            Pass created with real-time updates!
+          </div>
+          <div class="pass-card">
+            <div class="pass-header">
+              <div class="pass-info">
+                <h4 id="newPassName"></h4>
+                <p id="newPassInfo"></p>
+              </div>
+              <div class="points-display" id="newPassPoints">10 pts</div>
+            </div>
+            <div class="actions-row">
+              <a href="#" id="newPassDownload" class="btn btn-secondary" style="flex: 1;">
+                ⬇️ Download .pkpass
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>📋 Manage Passes</h2>
-      <ul class="pass-list" id="passList">
-        <li class="empty-state">No passes created yet</li>
-      </ul>
-    </div>
+    <!-- Settings Tab -->
+    <div id="tab-settings" class="tab-content">
+      <div class="card">
+        <h2>⚙️ Default Settings</h2>
+        <p style="color: #a0a0a0; margin-bottom: 20px;">These settings apply to new passes by default.</p>
+        
+        <h3>🏢 Business Info</h3>
+        <div class="form-row">
+          <div>
+            <label>Business Name</label>
+            <input type="text" id="settingBusinessName" value="\${defaultBusiness?.name || 'My Business'}">
+          </div>
+          <div>
+            <label>Program Name</label>
+            <input type="text" id="settingProgramName" value="\${defaultBusiness?.programName || 'Rewards'}">
+          </div>
+        </div>
 
-    <div class="instructions">
-      <h3>🔄 Real-Time Updates</h3>
-      <ol>
-        <li><strong>Create a pass</strong> and add it to your Apple Wallet</li>
-        <li><strong>Change points</strong> using the buttons below each pass</li>
-        <li><strong>Watch your Wallet</strong> - the pass will update automatically!</li>
-        <li>For local testing, use <code>ngrok http ${PORT}</code> and set PUBLIC_URL</li>
-      </ol>
-      <p style="margin-top: 16px; color: #fbbf24; font-size: 0.85rem;">
-        ⚠️ Note: Real-time updates require HTTPS and APNs push notifications.
-        For full functionality, deploy to a server with SSL certificate.
-      </p>
+        <h3>🎨 Default Colors</h3>
+        <div class="form-row-3">
+          <div>
+            <label>Background</label>
+            <input type="color" id="settingBgColor" value="#111827">
+          </div>
+          <div>
+            <label>Foreground</label>
+            <input type="color" id="settingFgColor" value="#ffffff">
+          </div>
+          <div>
+            <label>Label</label>
+            <input type="color" id="settingLabelColor" value="#b4b4b4">
+          </div>
+        </div>
+
+        <h3>📍 Location</h3>
+        <div class="form-row">
+          <div>
+            <label>Latitude</label>
+            <input type="text" id="settingLat" value="35.6892">
+          </div>
+          <div>
+            <label>Longitude</label>
+            <input type="text" id="settingLng" value="51.389">
+          </div>
+        </div>
+
+        <button onclick="saveSettings()" style="width: 100%; margin-top: 16px;">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <h3>✏️ Edit Pass</h3>
+      <input type="hidden" id="editCardId">
+      
+      <label>Customer Name</label>
+      <input type="text" id="editName">
+      
+      <label>Points</label>
+      <input type="number" id="editPoints">
+      
+      <div class="form-row-3">
+        <div>
+          <label>Background</label>
+          <input type="color" id="editBgColor">
+        </div>
+        <div>
+          <label>Text</label>
+          <input type="color" id="editFgColor">
+        </div>
+        <div>
+          <label>Label</label>
+          <input type="color" id="editLabelColor">
+        </div>
+      </div>
+
+      <label>Secondary Label</label>
+      <input type="text" id="editSecondaryLabel" placeholder="e.g., Level">
+      
+      <label>Secondary Value</label>
+      <input type="text" id="editSecondaryValue" placeholder="e.g., Gold">
+
+      <h4 style="color: #60a5fa; margin-top: 16px;">�️ Logo & Images</h4>
+      <div class="form-row">
+        <div>
+          <label>Logo URL</label>
+          <input type="text" id="editLogoUrl" placeholder="https://...">
+        </div>
+        <div>
+          <label>Icon URL</label>
+          <input type="text" id="editIconUrl" placeholder="https://...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Strip Image URL</label>
+          <input type="text" id="editStripUrl" placeholder="https://...">
+        </div>
+        <div>
+          <label>Thumbnail URL</label>
+          <input type="text" id="editThumbnailUrl" placeholder="https://...">
+        </div>
+      </div>
+
+      <h4 style="color: #60a5fa; margin-top: 16px;">�📱 QR Code / Barcode</h4>
+      <div class="form-row">
+        <div>
+          <label>Barcode Type</label>
+          <select id="editBarcodeFormat">
+            <option value="PKBarcodeFormatQR">QR Code</option>
+            <option value="PKBarcodeFormatPDF417">PDF417</option>
+            <option value="PKBarcodeFormatAztec">Aztec</option>
+            <option value="PKBarcodeFormatCode128">Code 128</option>
+          </select>
+        </div>
+        <div>
+          <label>Barcode Message</label>
+          <input type="text" id="editBarcodeMessage" placeholder="Data in barcode">
+        </div>
+      </div>
+      <label>Display Text (below barcode)</label>
+      <input type="text" id="editBarcodeAltText" placeholder="Text shown under barcode">
+
+      <div class="modal-actions">
+        <button class="btn-danger" onclick="closeEditModal()">Cancel</button>
+        <button onclick="savePassEdit()">Save & Update</button>
+      </div>
     </div>
   </div>
 
   <script>
     const passes = []
+    let defaultSettings = {
+      bgColor: '#111827',
+      fgColor: '#ffffff',
+      labelColor: '#b4b4b4'
+    }
+
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'))
+      document.querySelector(\`[onclick="showTab('\${name}')"]\`).classList.add('active')
+      document.getElementById('tab-' + name).classList.add('active')
+    }
 
     document.getElementById('createForm').addEventListener('submit', async (e) => {
       e.preventDefault()
-      const name = document.getElementById('customerName').value.trim()
-      if (!name) return
-
-      const btn = e.target.querySelector('button')
+      const btn = e.target.querySelector('button[type="submit"]')
       btn.textContent = 'Creating...'
       btn.disabled = true
 
       try {
+        const data = {
+          customerName: document.getElementById('customerName').value.trim(),
+          initialPoints: parseInt(document.getElementById('initialPoints').value) || 10,
+          bgColor: document.getElementById('bgColor').value,
+          fgColor: document.getElementById('fgColor').value,
+          labelColor: document.getElementById('labelColor').value,
+          programName: document.getElementById('programName').value,
+          pointsLabel: document.getElementById('pointsLabel').value,
+          headerLabel: document.getElementById('headerLabel').value,
+          headerValue: document.getElementById('headerValue').value,
+          secondaryLabel: document.getElementById('secondaryLabel').value,
+          secondaryValue: document.getElementById('secondaryValue').value,
+          barcodeFormat: document.getElementById('barcodeFormat').value,
+          barcodeMessage: document.getElementById('barcodeMessage').value,
+          barcodeAltText: document.getElementById('barcodeAltText').value,
+          logoUrl: document.getElementById('logoUrl').value,
+          iconUrl: document.getElementById('iconUrl').value,
+          stripUrl: document.getElementById('stripUrl').value,
+          thumbnailUrl: document.getElementById('thumbnailUrl').value
+        }
+
         const res = await fetch('/api/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customerName: name })
+          body: JSON.stringify(data)
         })
-        const data = await res.json()
+        const result = await res.json()
         
-        if (data.error) {
-          alert('Error: ' + data.error)
+        if (result.error) {
+          alert('Error: ' + result.error)
           return
         }
 
-        // Show result
-        document.getElementById('newPassName').textContent = name
-        document.getElementById('newPassInfo').textContent = 'ID: ' + data.cardId
-        document.getElementById('newPassPoints').textContent = data.points + ' pts'
-        document.getElementById('newPassDownload').href = '/pass/' + data.cardId
+        document.getElementById('newPassName').textContent = data.customerName
+        document.getElementById('newPassInfo').textContent = 'ID: ' + result.cardId
+        document.getElementById('newPassPoints').textContent = result.points + ' pts'
+        document.getElementById('newPassDownload').href = '/pass/' + result.cardId
         document.getElementById('passResult').classList.add('show')
 
-        // Add to list
         passes.unshift({ 
-          name, 
-          cardId: data.cardId, 
-          points: data.points,
+          name: data.customerName, 
+          cardId: result.cardId, 
+          points: result.points,
           devices: 0,
-          updating: false
+          updating: false,
+          bgColor: data.bgColor,
+          fgColor: data.fgColor,
+          labelColor: data.labelColor,
+          secondaryLabel: data.secondaryLabel,
+          secondaryValue: data.secondaryValue,
+          barcodeFormat: data.barcodeFormat,
+          barcodeMessage: data.barcodeMessage || result.cardId,
+          barcodeAltText: data.barcodeAltText,
+          logoUrl: data.logoUrl,
+          iconUrl: data.iconUrl,
+          stripUrl: data.stripUrl,
+          thumbnailUrl: data.thumbnailUrl
         })
         updatePassList()
-
-        // Clear form
         document.getElementById('customerName').value = ''
       } catch (err) {
         alert('Error creating pass: ' + err.message)
@@ -1089,59 +1329,111 @@ function generateHtmlPage(baseUrl) {
           return
         }
 
-        // Update local pass data
         pass.points = data.points
         pass.devices = data.registeredDevices || 0
-        
-        // Animate the points display
-        const pointsEl = document.getElementById('points-' + cardId)
-        if (pointsEl) {
-          pointsEl.classList.add('update-animation')
-          setTimeout(() => pointsEl.classList.remove('update-animation'), 500)
-        }
-        
         updatePassList()
       } catch (err) {
-        alert('Error updating points: ' + err.message)
+        alert('Error: ' + err.message)
       } finally {
         pass.updating = false
         updatePassList()
       }
     }
 
-    function showCustomInput(cardId) {
-      const input = document.getElementById('custom-input-' + cardId)
-      if (input) {
-        input.classList.toggle('show')
+    function openEditModal(cardId) {
+      const pass = passes.find(p => p.cardId === cardId)
+      if (!pass) return
+
+      document.getElementById('editCardId').value = cardId
+      document.getElementById('editName').value = pass.name
+      document.getElementById('editPoints').value = pass.points
+      document.getElementById('editBgColor').value = pass.bgColor || '#111827'
+      document.getElementById('editFgColor').value = pass.fgColor || '#ffffff'
+      document.getElementById('editLabelColor').value = pass.labelColor || '#b4b4b4'
+      document.getElementById('editSecondaryLabel').value = pass.secondaryLabel || ''
+      document.getElementById('editSecondaryValue').value = pass.secondaryValue || ''
+      document.getElementById('editBarcodeFormat').value = pass.barcodeFormat || 'PKBarcodeFormatQR'
+      document.getElementById('editBarcodeMessage').value = pass.barcodeMessage || pass.cardId
+      document.getElementById('editBarcodeAltText').value = pass.barcodeAltText || ''
+      document.getElementById('editLogoUrl').value = pass.logoUrl || ''
+      document.getElementById('editIconUrl').value = pass.iconUrl || ''
+      document.getElementById('editStripUrl').value = pass.stripUrl || ''
+      document.getElementById('editThumbnailUrl').value = pass.thumbnailUrl || ''
+      
+      document.getElementById('editModal').classList.add('show')
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('show')
+    }
+
+    async function savePassEdit() {
+      const cardId = document.getElementById('editCardId').value
+      const pass = passes.find(p => p.cardId === cardId)
+      if (!pass) return
+
+      const updates = {
+        name: document.getElementById('editName').value,
+        points: parseInt(document.getElementById('editPoints').value),
+        bgColor: document.getElementById('editBgColor').value,
+        fgColor: document.getElementById('editFgColor').value,
+        labelColor: document.getElementById('editLabelColor').value,
+        secondaryLabel: document.getElementById('editSecondaryLabel').value,
+        secondaryValue: document.getElementById('editSecondaryValue').value,
+        barcodeFormat: document.getElementById('editBarcodeFormat').value,
+        barcodeMessage: document.getElementById('editBarcodeMessage').value,
+        barcodeAltText: document.getElementById('editBarcodeAltText').value,
+        logoUrl: document.getElementById('editLogoUrl').value,
+        iconUrl: document.getElementById('editIconUrl').value,
+        stripUrl: document.getElementById('editStripUrl').value,
+        thumbnailUrl: document.getElementById('editThumbnailUrl').value
+      }
+
+      try {
+        const res = await fetch('/api/update/' + cardId, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        })
+        const data = await res.json()
+        
+        if (data.error) {
+          alert('Error: ' + data.error)
+          return
+        }
+
+        // Update local data
+        Object.assign(pass, updates)
+        pass.points = data.points
+        
+        closeEditModal()
+        updatePassList()
+        alert('Pass updated! Changes will appear in Wallet shortly.')
+      } catch (err) {
+        alert('Error: ' + err.message)
       }
     }
 
-    async function applyCustomPoints(cardId) {
-      const input = document.getElementById('custom-value-' + cardId)
-      if (!input) return
-      
-      const value = parseInt(input.value, 10)
-      if (isNaN(value)) {
-        alert('Please enter a valid number')
-        return
+    function saveSettings() {
+      defaultSettings = {
+        bgColor: document.getElementById('settingBgColor').value,
+        fgColor: document.getElementById('settingFgColor').value,
+        labelColor: document.getElementById('settingLabelColor').value
       }
-      
-      await updatePoints(cardId, value)
-      input.value = ''
-      document.getElementById('custom-input-' + cardId).classList.remove('show')
+      alert('Settings saved!')
     }
 
     function updatePassList() {
       const list = document.getElementById('passList')
       if (passes.length === 0) {
-        list.innerHTML = '<li class="empty-state">No passes created yet</li>'
+        list.innerHTML = '<li class="empty-state">No passes created yet. Go to "Create New" tab.</li>'
         return
       }
       list.innerHTML = passes.map(p => \`
-        <li class="pass-item-expanded">
+        <li class="pass-card">
           <div class="pass-header">
             <div class="pass-info">
-              <h3>\${p.name}</h3>
+              <h4>\${p.name}</h4>
               <p>ID: \${p.cardId}</p>
             </div>
             <div class="points-display \${p.updating ? 'update-animation' : ''}" id="points-\${p.cardId}">
@@ -1149,10 +1441,10 @@ function generateHtmlPage(baseUrl) {
             </div>
           </div>
           
-          <div class="realtime-notice">
-            <span class="status-indicator"></span>
-            <span>Real-time updates enabled</span>
-            \${p.devices > 0 ? '<span style="margin-left: auto;">' + p.devices + ' device(s) synced</span>' : ''}
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            Real-time enabled
+            \${p.devices > 0 ? ' • ' + p.devices + ' device(s)' : ''}
           </div>
           
           <div class="points-controls">
@@ -1161,20 +1453,15 @@ function generateHtmlPage(baseUrl) {
             <button class="points-btn add" onclick="updatePoints('\${p.cardId}', 1)" \${p.updating ? 'disabled' : ''}>+1</button>
             <button class="points-btn add" onclick="updatePoints('\${p.cardId}', 10)" \${p.updating ? 'disabled' : ''}>+10</button>
             <button class="points-btn add" onclick="updatePoints('\${p.cardId}', 50)" \${p.updating ? 'disabled' : ''}>+50</button>
-            <button class="points-btn custom" onclick="showCustomInput('\${p.cardId}')" \${p.updating ? 'disabled' : ''}>±</button>
+            <button class="points-btn custom" onclick="updatePoints('\${p.cardId}', parseInt(prompt('Enter points (+/-):')) || 0)">±</button>
           </div>
           
-          <div class="custom-points-input" id="custom-input-\${p.cardId}">
-            <input type="number" id="custom-value-\${p.cardId}" placeholder="Enter points (e.g. 25 or -15)">
-            <button onclick="applyCustomPoints('\${p.cardId}')" \${p.updating ? 'disabled' : ''}>Apply</button>
-          </div>
-          
-          <div class="pass-actions">
-            <a href="/pass/\${p.cardId}" class="action-btn download">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-              </svg>
-              Add to Wallet
+          <div class="actions-row">
+            <button class="btn-secondary btn-small" onclick="openEditModal('\${p.cardId}')" style="flex: 1;">
+              ✏️ Edit
+            </button>
+            <a href="/pass/\${p.cardId}" class="btn btn-small" style="flex: 1;">
+              ⬇️ Download
             </a>
           </div>
         </li>
@@ -1246,11 +1533,31 @@ const server = http.createServer(async (req, res) => {
       return
     }
 
-    // Create new pass
+    // Create new pass with customization
     if (path === '/api/create' && req.method === 'POST') {
       let body = ''
       for await (const chunk of req) body += chunk
-      const { customerName } = JSON.parse(body)
+      const data = JSON.parse(body)
+      const { 
+        customerName, 
+        initialPoints = 10,
+        bgColor = '#111827',
+        fgColor = '#ffffff',
+        labelColor = '#b4b4b4',
+        programName,
+        pointsLabel,
+        headerLabel,
+        headerValue,
+        secondaryLabel,
+        secondaryValue,
+        barcodeFormat = 'PKBarcodeFormatQR',
+        barcodeMessage,
+        barcodeAltText,
+        logoUrl,
+        iconUrl,
+        stripUrl,
+        thumbnailUrl
+      } = data
 
       if (!customerName) {
         res.writeHead(400, { 'Content-Type': 'application/json' })
@@ -1258,7 +1565,97 @@ const server = http.createServer(async (req, res) => {
         return
       }
 
-      const { customer, card, authToken } = await createCustomerCard(customerName)
+      // Create customer and card with custom settings
+      const customer = createCustomerAccount({
+        businessId: defaultBusiness.id,
+        fullName: customerName
+      })
+      customers.set(customer.id, customer)
+
+      const authToken = generateAuthToken()
+      const isPublicUrl = PUBLIC_URL && !PUBLIC_URL.includes('localhost') && !PUBLIC_URL.includes('127.0.0.1')
+
+      const cardConfig = {
+        businessId: defaultBusiness.id,
+        customerId: customer.id,
+        initialPoints: parseInt(initialPoints) || 10,
+        metadata: {
+          appleWallet: {
+            backgroundColor: bgColor,
+            foregroundColor: fgColor,
+            labelColor: labelColor,
+            ...(programName && { logoText: programName }),
+            passOverrides: isPublicUrl ? {
+              webServiceURL: PUBLIC_URL,
+              authenticationToken: authToken
+            } : {}
+          },
+          // Store customization data for later use
+          customization: {
+            bgColor,
+            fgColor,
+            labelColor,
+            programName: programName || defaultBusiness?.programName,
+            pointsLabel: pointsLabel || 'Points',
+            headerLabel,
+            headerValue,
+            secondaryLabel,
+            secondaryValue,
+            barcodeFormat,
+            barcodeMessage,
+            barcodeAltText,
+            logoUrl,
+            iconUrl,
+            stripUrl,
+            thumbnailUrl
+          }
+        }
+      }
+
+      // Add image URLs for pass generation
+      if (logoUrl) cardConfig.metadata.appleWallet.logoUrl = logoUrl
+      if (iconUrl) cardConfig.metadata.appleWallet.iconUrl = iconUrl
+      if (stripUrl) cardConfig.metadata.appleWallet.stripUrl = stripUrl
+      if (thumbnailUrl) cardConfig.metadata.appleWallet.thumbnailUrl = thumbnailUrl
+
+      // Add barcode configuration
+      const finalBarcodeMessage = barcodeMessage || card?.id || `MEMBER-${Date.now()}`
+      cardConfig.metadata.appleWallet.barcodes = [{
+        format: barcodeFormat,
+        message: finalBarcodeMessage,
+        messageEncoding: 'iso-8859-1',
+        altText: barcodeAltText || finalBarcodeMessage
+      }]
+      // Also set legacy barcode field for older iOS versions
+      cardConfig.metadata.appleWallet.barcode = {
+        format: barcodeFormat,
+        message: finalBarcodeMessage,
+        messageEncoding: 'iso-8859-1',
+        altText: barcodeAltText || finalBarcodeMessage
+      }
+
+      // Add secondary fields if provided
+      if (secondaryLabel || secondaryValue) {
+        cardConfig.metadata.appleWallet.secondaryFields = [{
+          key: 'secondary1',
+          label: secondaryLabel || '',
+          value: secondaryValue || ''
+        }]
+      }
+
+      // Add header fields if provided
+      if (headerLabel || headerValue) {
+        cardConfig.metadata.appleWallet.headerFields = [{
+          key: 'header1',
+          label: headerLabel || '',
+          value: headerValue || ''
+        }]
+      }
+
+      const card = await issueLoyaltyCard(cardConfig)
+      cards.set(card.id, card)
+      passAuthTokens.set(card.id, authToken)
+      passUpdateTimes.set(card.id, Date.now())
 
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({
@@ -1269,6 +1666,159 @@ const server = http.createServer(async (req, res) => {
         downloadUrl: `/pass/${card.id}`,
         webServiceURL: PUBLIC_URL,
         authToken: authToken
+      }))
+      return
+    }
+
+    // Update pass (appearance, points, content)
+    if (path.startsWith('/api/update/') && req.method === 'POST') {
+      const cardId = path.replace('/api/update/', '')
+      const card = cards.get(cardId)
+
+      if (!card) {
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Card not found' }))
+        return
+      }
+
+      let body = ''
+      for await (const chunk of req) body += chunk
+      const updates = JSON.parse(body)
+      const { 
+        name,
+        points,
+        bgColor,
+        fgColor,
+        labelColor,
+        secondaryLabel,
+        secondaryValue,
+        programName,
+        headerLabel,
+        headerValue,
+        barcodeFormat,
+        barcodeMessage,
+        barcodeAltText,
+        logoUrl,
+        iconUrl,
+        stripUrl,
+        thumbnailUrl
+      } = updates
+
+      // Update card data
+      card.metadata = card.metadata || {}
+      card.metadata.appleWallet = card.metadata.appleWallet || {}
+      card.metadata.customization = card.metadata.customization || {}
+
+      // Update colors
+      if (bgColor) {
+        card.metadata.appleWallet.backgroundColor = bgColor
+        card.metadata.customization.bgColor = bgColor
+      }
+      if (fgColor) {
+        card.metadata.appleWallet.foregroundColor = fgColor
+        card.metadata.customization.fgColor = fgColor
+      }
+      if (labelColor) {
+        card.metadata.appleWallet.labelColor = labelColor
+        card.metadata.customization.labelColor = labelColor
+      }
+
+      // Update program name
+      if (programName) {
+        card.metadata.appleWallet.logoText = programName
+        card.metadata.customization.programName = programName
+      }
+
+      // Update secondary fields
+      if (secondaryLabel !== undefined || secondaryValue !== undefined) {
+        card.metadata.appleWallet.secondaryFields = [{
+          key: 'secondary1',
+          label: secondaryLabel || '',
+          value: secondaryValue || ''
+        }]
+        card.metadata.customization.secondaryLabel = secondaryLabel
+        card.metadata.customization.secondaryValue = secondaryValue
+      }
+
+      // Update header fields
+      if (headerLabel !== undefined || headerValue !== undefined) {
+        card.metadata.appleWallet.headerFields = [{
+          key: 'header1',
+          label: headerLabel || '',
+          value: headerValue || ''
+        }]
+        card.metadata.customization.headerLabel = headerLabel
+        card.metadata.customization.headerValue = headerValue
+      }
+
+      // Update barcode
+      if (barcodeFormat || barcodeMessage || barcodeAltText !== undefined) {
+        const format = barcodeFormat || card.metadata.customization.barcodeFormat || 'PKBarcodeFormatQR'
+        const message = barcodeMessage || card.metadata.customization.barcodeMessage || cardId
+        const altText = barcodeAltText !== undefined ? barcodeAltText : (card.metadata.customization.barcodeAltText || message)
+        
+        card.metadata.appleWallet.barcodes = [{
+          format: format,
+          message: message,
+          messageEncoding: 'iso-8859-1',
+          altText: altText
+        }]
+        card.metadata.appleWallet.barcode = {
+          format: format,
+          message: message,
+          messageEncoding: 'iso-8859-1',
+          altText: altText
+        }
+        card.metadata.customization.barcodeFormat = format
+        card.metadata.customization.barcodeMessage = message
+        card.metadata.customization.barcodeAltText = altText
+      }
+
+      // Update images
+      if (logoUrl !== undefined) {
+        card.metadata.appleWallet.logoUrl = logoUrl || undefined
+        card.metadata.customization.logoUrl = logoUrl
+      }
+      if (iconUrl !== undefined) {
+        card.metadata.appleWallet.iconUrl = iconUrl || undefined
+        card.metadata.customization.iconUrl = iconUrl
+      }
+      if (stripUrl !== undefined) {
+        card.metadata.appleWallet.stripUrl = stripUrl || undefined
+        card.metadata.customization.stripUrl = stripUrl
+      }
+      if (thumbnailUrl !== undefined) {
+        card.metadata.appleWallet.thumbnailUrl = thumbnailUrl || undefined
+        card.metadata.customization.thumbnailUrl = thumbnailUrl
+      }
+
+      // Update points if changed
+      if (points !== undefined && points !== card.points) {
+        const delta = points - card.points
+        const updated = await updateLoyaltyPoints({
+          cardId: card.id,
+          delta: delta
+        })
+        card.points = updated.points
+      }
+
+      // Update the timestamp
+      passUpdateTimes.set(cardId, Date.now())
+      cards.set(cardId, card)
+
+      // Send push notification to registered devices
+      await sendPushNotification(cardId)
+
+      const registrations = deviceRegistrations.get(cardId)
+      const registeredDevices = registrations ? registrations.size : 0
+
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({
+        success: true,
+        cardId: card.id,
+        points: card.points,
+        registeredDevices,
+        pushSent: registeredDevices > 0
       }))
       return
     }
