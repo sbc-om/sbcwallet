@@ -68,9 +68,15 @@ export class AppleWalletAdapter {
         passProps.logoText = appleWallet.logoText || populatedTemplate.logoText
       }
 
-      // Add barcodes
-      if (populatedTemplate.barcodes && populatedTemplate.barcodes.length > 0) {
+      // Add barcodes - prefer from metadata over template
+      if (appleWallet.barcodes && appleWallet.barcodes.length > 0) {
+        passProps.barcodes = appleWallet.barcodes
+      } else if (populatedTemplate.barcodes && populatedTemplate.barcodes.length > 0) {
         passProps.barcodes = populatedTemplate.barcodes
+      }
+      // Legacy barcode field for older iOS
+      if (appleWallet.barcode) {
+        passProps.barcode = appleWallet.barcode
       }
 
       // Add generic fields (Apple Wallet "generic" pass type)
@@ -88,6 +94,26 @@ export class AppleWalletAdapter {
           backFields: []
         }
         delete passProps.generic
+
+        // Add auxiliary fields from metadata if provided
+        if (appleWallet.auxiliaryFields && Array.isArray(appleWallet.auxiliaryFields)) {
+          passProps.storeCard.auxiliaryFields = appleWallet.auxiliaryFields
+        }
+
+        // Add back fields (detail section) from metadata if provided
+        if (appleWallet.backFields && Array.isArray(appleWallet.backFields)) {
+          passProps.storeCard.backFields = appleWallet.backFields
+        }
+
+        // Add secondary fields from metadata if provided
+        if (appleWallet.secondaryFields && Array.isArray(appleWallet.secondaryFields)) {
+          passProps.storeCard.secondaryFields = appleWallet.secondaryFields
+        }
+
+        // Add header fields from metadata if provided
+        if (appleWallet.headerFields && Array.isArray(appleWallet.headerFields)) {
+          passProps.storeCard.headerFields = appleWallet.headerFields
+        }
       }
 
       // Advanced passthrough: allow issuers to supply any PassKit fields.
@@ -116,23 +142,100 @@ export class AppleWalletAdapter {
       let icon2xPng: Buffer
       let logoPng: Buffer
       let logo2xPng: Buffer
+      let stripPng: Buffer | null = null
+      let strip2xPng: Buffer | null = null
+      let thumbnailPng: Buffer | null = null
+      let thumbnail2xPng: Buffer | null = null
 
-      try {
-        iconPng = await readFile(join(certsDir, 'icon.png'))
-        icon2xPng = await readFile(join(certsDir, 'icon@2x.png'))
-      } catch {
-        // Create valid PNG icons programmatically if files don't exist
-        iconPng = this.createValidPng(29, 29, [31, 41, 55])  // #1f2937 dark gray
-        icon2xPng = this.createValidPng(58, 58, [31, 41, 55])
+      // Try to download images from URLs if provided in metadata
+      const iconUrl = appleWallet.iconUrl
+      const logoUrl = appleWallet.logoUrl
+      const stripUrl = appleWallet.stripUrl
+      const thumbnailUrl = appleWallet.thumbnailUrl
+
+      // Helper function to fetch image from URL
+      const fetchImage = async (url: string): Promise<Buffer | null> => {
+        if (!url) return null
+        try {
+          const response = await fetch(url)
+          if (!response.ok) return null
+          const arrayBuffer = await response.arrayBuffer()
+          return Buffer.from(arrayBuffer)
+        } catch {
+          return null
+        }
       }
 
-      try {
-        logoPng = await readFile(join(certsDir, 'logo.png'))
-        logo2xPng = await readFile(join(certsDir, 'logo@2x.png'))
-      } catch {
-        // Create logo (160x50 for 1x, 320x100 for 2x)
-        logoPng = this.createValidPng(160, 50, [31, 41, 55])
-        logo2xPng = this.createValidPng(320, 100, [31, 41, 55])
+      // Load or create icon
+      if (iconUrl) {
+        const downloaded = await fetchImage(iconUrl)
+        if (downloaded) {
+          iconPng = downloaded
+          icon2xPng = downloaded
+        } else {
+          iconPng = this.createValidPng(29, 29, [31, 41, 55])
+          icon2xPng = this.createValidPng(58, 58, [31, 41, 55])
+        }
+      } else {
+        try {
+          iconPng = await readFile(join(certsDir, 'icon.png'))
+          icon2xPng = await readFile(join(certsDir, 'icon@2x.png'))
+        } catch {
+          iconPng = this.createValidPng(29, 29, [31, 41, 55])
+          icon2xPng = this.createValidPng(58, 58, [31, 41, 55])
+        }
+      }
+
+      // Load or create logo
+      if (logoUrl) {
+        const downloaded = await fetchImage(logoUrl)
+        if (downloaded) {
+          logoPng = downloaded
+          logo2xPng = downloaded
+        } else {
+          logoPng = this.createValidPng(160, 50, [31, 41, 55])
+          logo2xPng = this.createValidPng(320, 100, [31, 41, 55])
+        }
+      } else {
+        try {
+          logoPng = await readFile(join(certsDir, 'logo.png'))
+          logo2xPng = await readFile(join(certsDir, 'logo@2x.png'))
+        } catch {
+          logoPng = this.createValidPng(160, 50, [31, 41, 55])
+          logo2xPng = this.createValidPng(320, 100, [31, 41, 55])
+        }
+      }
+
+      // Load strip image if URL provided
+      if (stripUrl) {
+        const downloaded = await fetchImage(stripUrl)
+        if (downloaded) {
+          stripPng = downloaded
+          strip2xPng = downloaded
+        }
+      } else {
+        try {
+          stripPng = await readFile(join(certsDir, 'strip.png'))
+          strip2xPng = await readFile(join(certsDir, 'strip@2x.png'))
+        } catch {
+          // No strip image - optional
+        }
+      }
+
+      // Load thumbnail if URL provided
+      if (thumbnailUrl) {
+        const downloaded = await fetchImage(thumbnailUrl)
+        if (downloaded) {
+          thumbnailPng = downloaded
+          thumbnail2xPng = downloaded
+        }
+      } else {
+        try {
+          thumbnailPng = await readFile(join(certsDir, 'thumbnail.png'))
+          thumbnail2xPng = await readFile(join(certsDir, 'thumbnail@2x.png'))
+        } catch {
+          // No thumbnail - optional
+        }
       }
 
       // Build pass buffers with icon and logo
@@ -142,6 +245,16 @@ export class AppleWalletAdapter {
         'icon@2x.png': icon2xPng,
         'logo.png': logoPng,
         'logo@2x.png': logo2xPng
+      }
+
+      // Add optional images
+      if (stripPng) {
+        passBuffers['strip.png'] = stripPng
+        if (strip2xPng) passBuffers['strip@2x.png'] = strip2xPng
+      }
+      if (thumbnailPng) {
+        passBuffers['thumbnail.png'] = thumbnailPng
+        if (thumbnail2xPng) passBuffers['thumbnail@2x.png'] = thumbnail2xPng
       }
 
       // Create pass with pass.json and icon in buffers

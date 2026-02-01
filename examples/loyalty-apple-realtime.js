@@ -755,6 +755,30 @@ function generateHtmlPage(baseUrl) {
     textarea { resize: vertical; min-height: 80px; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .back-field-item { 
+      background: rgba(0,0,0,0.15); 
+      padding: 12px; 
+      border-radius: 8px; 
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .back-field-item input { margin: 0; }
+    .back-field-item textarea { margin: 0; min-height: 50px; }
+    .back-field-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      margin-bottom: 8px;
+      background: rgba(0,0,0,0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+    .back-label-input { font-size: 0.85rem; padding: 8px; }
+    .back-value-input { font-size: 0.85rem; padding: 8px; min-height: 40px; resize: vertical; }
+    #backFieldsContainer { max-height: 400px; overflow-y: auto; padding-right: 8px; }
     button, .btn {
       padding: 12px 20px;
       background: linear-gradient(135deg, #4ade80, #22c55e);
@@ -932,6 +956,7 @@ function generateHtmlPage(baseUrl) {
     <div class="tabs">
       <button class="tab active" onclick="showTab('passes')">📋 Passes</button>
       <button class="tab" onclick="showTab('create')">✨ Create New</button>
+      <button class="tab" onclick="showTab('messages')">📨 Messages</button>
       <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
     </div>
 
@@ -1036,8 +1061,12 @@ function generateHtmlPage(baseUrl) {
             </div>
           </div>
 
-          <h3>📱 QR Code / Barcode</h3>
+          <h3>🆔 Member ID & QR Code</h3>
           <div class="form-row">
+            <div>
+              <label>Member ID (Custom)</label>
+              <input type="text" id="customMemberId" placeholder="Leave empty for auto-generate (e.g., SBC-ABC-12345)">
+            </div>
             <div>
               <label>Barcode Type</label>
               <select id="barcodeFormat">
@@ -1047,15 +1076,86 @@ function generateHtmlPage(baseUrl) {
                 <option value="PKBarcodeFormatCode128">Code 128</option>
               </select>
             </div>
+          </div>
+          <div class="form-row">
             <div>
-              <label>Barcode Message (encoded data)</label>
-              <input type="text" id="barcodeMessage" placeholder="Auto-generated if empty">
+              <label>Barcode Data (what scanner reads)</label>
+              <input type="text" id="barcodeMessage" placeholder="Leave empty to use Member ID">
+            </div>
+            <div>
+              <label>Display Text (below barcode)</label>
+              <input type="text" id="barcodeAltText" placeholder="Leave empty to use Member ID">
+            </div>
+          </div>
+          <p style="font-size: 0.8rem; color: #a0a0a0; margin-top: 4px;">
+            💡 Member ID: Unique identifier for this card. Barcode Data: what scanner reads. Display Text: shown to user.
+          </p>
+
+          <h3>📊 Auxiliary Fields (Below Points)</h3>
+          <div class="form-row">
+            <div>
+              <label>Aux Field 1 Label</label>
+              <input type="text" id="auxLabel1" placeholder="e.g., Valid Until">
+            </div>
+            <div>
+              <label>Aux Field 1 Value</label>
+              <input type="text" id="auxValue1" placeholder="e.g., Dec 2026">
             </div>
           </div>
           <div class="form-row">
             <div>
-              <label>Display Text (below barcode)</label>
-              <input type="text" id="barcodeAltText" placeholder="e.g., Member ID or custom text">
+              <label>Aux Field 2 Label</label>
+              <input type="text" id="auxLabel2" placeholder="e.g., Card Type">
+            </div>
+            <div>
+              <label>Aux Field 2 Value</label>
+              <input type="text" id="auxValue2" placeholder="e.g., Premium">
+            </div>
+          </div>
+
+          <h3>📄 Back of Card (Detail Section) - 10 Fields</h3>
+          <p style="font-size: 0.85rem; color: #a0a0a0; margin-bottom: 12px;">These fields appear when user taps "i" on the pass. Fill only what you need.</p>
+          
+          <div id="backFieldsContainer">
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel1" placeholder="Title 1 (e.g., Terms)">
+              <textarea class="back-value-input" id="backValue1" placeholder="Content 1..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel2" placeholder="Title 2 (e.g., How to Earn)">
+              <textarea class="back-value-input" id="backValue2" placeholder="Content 2..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel3" placeholder="Title 3 (e.g., Contact)">
+              <textarea class="back-value-input" id="backValue3" placeholder="Content 3..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel4" placeholder="Title 4 (e.g., Website)">
+              <textarea class="back-value-input" id="backValue4" placeholder="Content 4..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel5" placeholder="Title 5">
+              <textarea class="back-value-input" id="backValue5" placeholder="Content 5..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel6" placeholder="Title 6">
+              <textarea class="back-value-input" id="backValue6" placeholder="Content 6..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel7" placeholder="Title 7">
+              <textarea class="back-value-input" id="backValue7" placeholder="Content 7..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel8" placeholder="Title 8">
+              <textarea class="back-value-input" id="backValue8" placeholder="Content 8..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel9" placeholder="Title 9">
+              <textarea class="back-value-input" id="backValue9" placeholder="Content 9..."></textarea>
+            </div>
+            <div class="back-field-row">
+              <input type="text" class="back-label-input" id="backLabel10" placeholder="Title 10">
+              <textarea class="back-value-input" id="backValue10" placeholder="Content 10..."></textarea>
             </div>
           </div>
 
@@ -1136,6 +1236,59 @@ function generateHtmlPage(baseUrl) {
         <button onclick="saveSettings()" style="width: 100%; margin-top: 16px;">Save Settings</button>
       </div>
     </div>
+
+    <!-- Messages Tab -->
+    <div id="tab-messages" class="tab-content">
+      <div class="card">
+        <h2>📨 Push Notifications</h2>
+        <p style="color: #a0a0a0; margin-bottom: 20px;">Send push notifications to update passes and show messages to users.</p>
+        
+        <h3>📢 Broadcast to All</h3>
+        <form id="broadcastForm">
+          <label>Message Type</label>
+          <select id="broadcastType">
+            <option value="points">🎁 Bonus Points</option>
+            <option value="promo">🏷️ Promotion</option>
+            <option value="update">🔄 Pass Update</option>
+            <option value="custom">✏️ Custom Message</option>
+          </select>
+          
+          <div id="broadcastPointsField">
+            <label>Bonus Points</label>
+            <input type="number" id="broadcastPoints" value="10" min="1">
+          </div>
+          
+          <label>Notification Message</label>
+          <input type="text" id="broadcastMessage" placeholder="e.g., You earned bonus points!">
+          
+          <label>Secondary Field Update (optional)</label>
+          <div class="form-row">
+            <div>
+              <input type="text" id="broadcastSecLabel" placeholder="Label (e.g., Status)">
+            </div>
+            <div>
+              <input type="text" id="broadcastSecValue" placeholder="Value (e.g., VIP)">
+            </div>
+          </div>
+          
+          <button type="submit" style="width: 100%; margin-top: 16px; background: linear-gradient(135deg, #f59e0b, #d97706);">📨 Send to All Passes</button>
+        </form>
+        
+        <div id="broadcastResult" style="display: none; margin-top: 16px;">
+          <div class="status-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">
+            <span>📨</span>
+            <span id="broadcastResultText"></span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3>📜 Message History</h3>
+        <ul class="pass-list" id="messageHistory">
+          <li class="empty-state">No messages sent yet.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <!-- Edit Modal -->
@@ -1205,12 +1358,78 @@ function generateHtmlPage(baseUrl) {
           </select>
         </div>
         <div>
-          <label>Barcode Message</label>
-          <input type="text" id="editBarcodeMessage" placeholder="Data in barcode">
+          <label>Barcode Data</label>
+          <input type="text" id="editBarcodeMessage" placeholder="Data encoded in barcode">
         </div>
       </div>
       <label>Display Text (below barcode)</label>
       <input type="text" id="editBarcodeAltText" placeholder="Text shown under barcode">
+
+      <h4 style="color: #60a5fa; margin-top: 16px;">📊 Auxiliary Fields</h4>
+      <div class="form-row">
+        <div>
+          <label>Aux 1 Label</label>
+          <input type="text" id="editAuxLabel1" placeholder="e.g., Valid Until">
+        </div>
+        <div>
+          <label>Aux 1 Value</label>
+          <input type="text" id="editAuxValue1" placeholder="e.g., Dec 2026">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>Aux 2 Label</label>
+          <input type="text" id="editAuxLabel2" placeholder="e.g., Card Type">
+        </div>
+        <div>
+          <label>Aux 2 Value</label>
+          <input type="text" id="editAuxValue2" placeholder="e.g., Premium">
+        </div>
+      </div>
+
+      <h4 style="color: #60a5fa; margin-top: 16px;">📄 Back of Card (10 Details)</h4>
+      <div id="editBackFields" style="max-height: 300px; overflow-y: auto;">
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 1">
+          <textarea class="back-value" placeholder="Content 1" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 2">
+          <textarea class="back-value" placeholder="Content 2" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 3">
+          <textarea class="back-value" placeholder="Content 3" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 4">
+          <textarea class="back-value" placeholder="Content 4" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 5">
+          <textarea class="back-value" placeholder="Content 5" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 6">
+          <textarea class="back-value" placeholder="Content 6" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 7">
+          <textarea class="back-value" placeholder="Content 7" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 8">
+          <textarea class="back-value" placeholder="Content 8" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 9">
+          <textarea class="back-value" placeholder="Content 9" style="min-height: 40px;"></textarea>
+        </div>
+        <div class="back-field-item">
+          <input type="text" class="back-label" placeholder="Title 10">
+          <textarea class="back-value" placeholder="Content 10" style="min-height: 40px;"></textarea>
+        </div>
+      </div>
 
       <div class="modal-actions">
         <button class="btn-danger" onclick="closeEditModal()">Cancel</button>
@@ -1241,9 +1460,20 @@ function generateHtmlPage(baseUrl) {
       btn.disabled = true
 
       try {
+        // Collect back fields (10 items)
+        const backFields = []
+        for (let i = 1; i <= 10; i++) {
+          const label = document.getElementById('backLabel' + i)?.value
+          const value = document.getElementById('backValue' + i)?.value
+          if (label && value) {
+            backFields.push({ label, value })
+          }
+        }
+
         const data = {
           customerName: document.getElementById('customerName').value.trim(),
           initialPoints: parseInt(document.getElementById('initialPoints').value) || 10,
+          customMemberId: document.getElementById('customMemberId').value.trim(),
           bgColor: document.getElementById('bgColor').value,
           fgColor: document.getElementById('fgColor').value,
           labelColor: document.getElementById('labelColor').value,
@@ -1259,7 +1489,14 @@ function generateHtmlPage(baseUrl) {
           logoUrl: document.getElementById('logoUrl').value,
           iconUrl: document.getElementById('iconUrl').value,
           stripUrl: document.getElementById('stripUrl').value,
-          thumbnailUrl: document.getElementById('thumbnailUrl').value
+          thumbnailUrl: document.getElementById('thumbnailUrl').value,
+          // Auxiliary Fields
+          auxLabel1: document.getElementById('auxLabel1').value,
+          auxValue1: document.getElementById('auxValue1').value,
+          auxLabel2: document.getElementById('auxLabel2').value,
+          auxValue2: document.getElementById('auxValue2').value,
+          // Back Fields (Detail Section) - 10 items
+          backFields: backFields
         }
 
         const res = await fetch('/api/create', {
@@ -1275,7 +1512,7 @@ function generateHtmlPage(baseUrl) {
         }
 
         document.getElementById('newPassName').textContent = data.customerName
-        document.getElementById('newPassInfo').textContent = 'ID: ' + result.cardId
+        document.getElementById('newPassInfo').textContent = 'ID: ' + result.cardId + (result.memberId ? ' | Member: ' + result.memberId : '')
         document.getElementById('newPassPoints').textContent = result.points + ' pts'
         document.getElementById('newPassDownload').href = '/pass/' + result.cardId
         document.getElementById('passResult').classList.add('show')
@@ -1283,21 +1520,28 @@ function generateHtmlPage(baseUrl) {
         passes.unshift({ 
           name: data.customerName, 
           cardId: result.cardId, 
+          memberId: result.memberId,
           points: result.points,
           devices: 0,
           updating: false,
+          customMemberId: data.customMemberId,
           bgColor: data.bgColor,
           fgColor: data.fgColor,
           labelColor: data.labelColor,
           secondaryLabel: data.secondaryLabel,
           secondaryValue: data.secondaryValue,
           barcodeFormat: data.barcodeFormat,
-          barcodeMessage: data.barcodeMessage || result.cardId,
+          barcodeMessage: data.barcodeMessage,
           barcodeAltText: data.barcodeAltText,
           logoUrl: data.logoUrl,
           iconUrl: data.iconUrl,
           stripUrl: data.stripUrl,
-          thumbnailUrl: data.thumbnailUrl
+          thumbnailUrl: data.thumbnailUrl,
+          auxLabel1: data.auxLabel1,
+          auxValue1: data.auxValue1,
+          auxLabel2: data.auxLabel2,
+          auxValue2: data.auxValue2,
+          backFields: data.backFields
         })
         updatePassList()
         document.getElementById('customerName').value = ''
@@ -1360,6 +1604,27 @@ function generateHtmlPage(baseUrl) {
       document.getElementById('editStripUrl').value = pass.stripUrl || ''
       document.getElementById('editThumbnailUrl').value = pass.thumbnailUrl || ''
       
+      // Auxiliary fields
+      document.getElementById('editAuxLabel1').value = pass.auxLabel1 || ''
+      document.getElementById('editAuxValue1').value = pass.auxValue1 || ''
+      document.getElementById('editAuxLabel2').value = pass.auxLabel2 || ''
+      document.getElementById('editAuxValue2').value = pass.auxValue2 || ''
+      
+      // Back fields (details)
+      const backFieldItems = document.querySelectorAll('#editBackFields .back-field-item')
+      const backFields = pass.backFields || []
+      backFieldItems.forEach((item, i) => {
+        const labelInput = item.querySelector('.back-label')
+        const valueInput = item.querySelector('.back-value')
+        if (backFields[i]) {
+          labelInput.value = backFields[i].label || ''
+          valueInput.value = backFields[i].value || ''
+        } else {
+          labelInput.value = ''
+          valueInput.value = ''
+        }
+      })
+      
       document.getElementById('editModal').classList.add('show')
     }
 
@@ -1371,6 +1636,17 @@ function generateHtmlPage(baseUrl) {
       const cardId = document.getElementById('editCardId').value
       const pass = passes.find(p => p.cardId === cardId)
       if (!pass) return
+
+      // Collect back fields
+      const backFieldItems = document.querySelectorAll('#editBackFields .back-field-item')
+      const backFields = []
+      backFieldItems.forEach(item => {
+        const label = item.querySelector('.back-label').value
+        const value = item.querySelector('.back-value').value
+        if (label && value) {
+          backFields.push({ label, value })
+        }
+      })
 
       const updates = {
         name: document.getElementById('editName').value,
@@ -1386,7 +1662,12 @@ function generateHtmlPage(baseUrl) {
         logoUrl: document.getElementById('editLogoUrl').value,
         iconUrl: document.getElementById('editIconUrl').value,
         stripUrl: document.getElementById('editStripUrl').value,
-        thumbnailUrl: document.getElementById('editThumbnailUrl').value
+        thumbnailUrl: document.getElementById('editThumbnailUrl').value,
+        auxLabel1: document.getElementById('editAuxLabel1').value,
+        auxValue1: document.getElementById('editAuxValue1').value,
+        auxLabel2: document.getElementById('editAuxLabel2').value,
+        auxValue2: document.getElementById('editAuxValue2').value,
+        backFields: backFields
       }
 
       try {
@@ -1421,6 +1702,161 @@ function generateHtmlPage(baseUrl) {
         labelColor: document.getElementById('settingLabelColor').value
       }
       alert('Settings saved!')
+    }
+
+    // Message functions
+    const messageHistory = []
+
+    function toggleMsgFields() {
+      const type = document.getElementById('msgType').value
+      document.getElementById('msgPointsField').style.display = type === 'points' ? 'block' : 'none'
+    }
+
+    function openMessageModal(cardId) {
+      const pass = passes.find(p => p.cardId === cardId)
+      if (!pass) return
+      
+      document.getElementById('msgCardId').value = cardId
+      document.getElementById('msgCardName').textContent = pass.name
+      document.getElementById('msgPoints').value = 10
+      document.getElementById('msgText').value = ''
+      document.getElementById('msgSecLabel').value = ''
+      document.getElementById('msgSecValue').value = ''
+      document.getElementById('msgType').value = 'points'
+      toggleMsgFields()
+      
+      document.getElementById('messageModal').classList.add('show')
+    }
+
+    function closeMessageModal() {
+      document.getElementById('messageModal').classList.remove('show')
+    }
+
+    async function sendMessage() {
+      const cardId = document.getElementById('msgCardId').value
+      const type = document.getElementById('msgType').value
+      const message = document.getElementById('msgText').value
+      const points = type === 'points' ? parseInt(document.getElementById('msgPoints').value) : 0
+      const secLabel = document.getElementById('msgSecLabel').value
+      const secValue = document.getElementById('msgSecValue').value
+      
+      try {
+        const res = await fetch('/api/message/' + cardId, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, message, points, secLabel, secValue })
+        })
+        const data = await res.json()
+        
+        if (data.error) {
+          alert('Error: ' + data.error)
+          return
+        }
+        
+        // Update local pass data
+        const pass = passes.find(p => p.cardId === cardId)
+        if (pass && points) pass.points = data.points
+        
+        // Add to history
+        messageHistory.unshift({
+          time: new Date().toLocaleTimeString(),
+          cardId,
+          name: pass?.name,
+          type,
+          message,
+          points
+        })
+        updateMessageHistory()
+        
+        closeMessageModal()
+        updatePassList()
+        alert('Message sent! ' + (data.pushSent ? 'Push notification delivered.' : 'No devices registered.'))
+      } catch (err) {
+        alert('Error: ' + err.message)
+      }
+    }
+
+    // Broadcast form
+    document.getElementById('broadcastForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const btn = e.target.querySelector('button[type="submit"]')
+      btn.textContent = 'Sending...'
+      btn.disabled = true
+      
+      const type = document.getElementById('broadcastType').value
+      const message = document.getElementById('broadcastMessage').value
+      const points = type === 'points' ? parseInt(document.getElementById('broadcastPoints').value) : 0
+      const secLabel = document.getElementById('broadcastSecLabel').value
+      const secValue = document.getElementById('broadcastSecValue').value
+      
+      try {
+        const res = await fetch('/api/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, message, points, secLabel, secValue })
+        })
+        const data = await res.json()
+        
+        if (data.error) {
+          alert('Error: ' + data.error)
+          return
+        }
+        
+        // Update local passes
+        if (points) {
+          passes.forEach(p => p.points = (p.points || 0) + points)
+        }
+        
+        // Show result
+        document.getElementById('broadcastResultText').textContent = 
+          \`Sent to \${data.totalPasses} passes, \${data.pushesSent} push notifications delivered.\`
+        document.getElementById('broadcastResult').style.display = 'block'
+        
+        // Add to history
+        messageHistory.unshift({
+          time: new Date().toLocaleTimeString(),
+          cardId: 'ALL',
+          name: 'Broadcast',
+          type,
+          message,
+          points,
+          count: data.totalPasses
+        })
+        updateMessageHistory()
+        updatePassList()
+      } catch (err) {
+        alert('Error: ' + err.message)
+      } finally {
+        btn.textContent = '📨 Send to All Passes'
+        btn.disabled = false
+      }
+    })
+
+    // Toggle broadcast points field
+    document.getElementById('broadcastType')?.addEventListener('change', (e) => {
+      document.getElementById('broadcastPointsField').style.display = e.target.value === 'points' ? 'block' : 'none'
+    })
+
+    function updateMessageHistory() {
+      const list = document.getElementById('messageHistory')
+      if (!list) return
+      if (messageHistory.length === 0) {
+        list.innerHTML = '<li class="empty-state">No messages sent yet.</li>'
+        return
+      }
+      list.innerHTML = messageHistory.slice(0, 20).map(m => \`
+        <li class="pass-card" style="padding: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong>\${m.cardId === 'ALL' ? '📢 Broadcast' : '📨 ' + m.name}</strong>
+              <span style="color: #a0a0a0; font-size: 0.8rem;"> • \${m.time}</span>
+            </div>
+            <span style="color: #fbbf24;">\${m.type === 'points' ? '+' + m.points + ' pts' : m.type}</span>
+          </div>
+          \${m.message ? '<p style="margin: 8px 0 0; color: #d0d0d0; font-size: 0.9rem;">"' + m.message + '"</p>' : ''}
+          \${m.count ? '<p style="margin: 4px 0 0; color: #a0a0a0; font-size: 0.8rem;">Sent to ' + m.count + ' passes</p>' : ''}
+        </li>
+      \`).join('')
     }
 
     function updatePassList() {
@@ -1459,6 +1895,9 @@ function generateHtmlPage(baseUrl) {
           <div class="actions-row">
             <button class="btn-secondary btn-small" onclick="openEditModal('\${p.cardId}')" style="flex: 1;">
               ✏️ Edit
+            </button>
+            <button class="btn-small" onclick="openMessageModal('\${p.cardId}')" style="flex: 1; background: linear-gradient(135deg, #f59e0b, #d97706);">
+              📨 Message
             </button>
             <a href="/pass/\${p.cardId}" class="btn btn-small" style="flex: 1;">
               ⬇️ Download
@@ -1541,6 +1980,7 @@ const server = http.createServer(async (req, res) => {
       const { 
         customerName, 
         initialPoints = 10,
+        customMemberId,
         bgColor = '#111827',
         fgColor = '#ffffff',
         labelColor = '#b4b4b4',
@@ -1556,7 +1996,13 @@ const server = http.createServer(async (req, res) => {
         logoUrl,
         iconUrl,
         stripUrl,
-        thumbnailUrl
+        thumbnailUrl,
+        // New fields
+        auxLabel1,
+        auxValue1,
+        auxLabel2,
+        auxValue2,
+        backFields = []
       } = data
 
       if (!customerName) {
@@ -1566,14 +2012,21 @@ const server = http.createServer(async (req, res) => {
       }
 
       // Create customer and card with custom settings
+      // Pass customMemberId to createCustomerAccount if provided
       const customer = createCustomerAccount({
         businessId: defaultBusiness.id,
-        fullName: customerName
+        fullName: customerName,
+        ...(customMemberId && { memberId: customMemberId })
       })
       customers.set(customer.id, customer)
 
       const authToken = generateAuthToken()
       const isPublicUrl = PUBLIC_URL && !PUBLIC_URL.includes('localhost') && !PUBLIC_URL.includes('127.0.0.1')
+
+      // Determine final barcode message - use provided barcodeMessage, or fall back to memberId
+      const finalMemberId = customer.memberId
+      const finalBarcodeMessage = barcodeMessage || finalMemberId
+      const finalBarcodeAltText = barcodeAltText || finalMemberId
 
       const cardConfig = {
         businessId: defaultBusiness.id,
@@ -1607,7 +2060,12 @@ const server = http.createServer(async (req, res) => {
             logoUrl,
             iconUrl,
             stripUrl,
-            thumbnailUrl
+            thumbnailUrl,
+            auxLabel1,
+            auxValue1,
+            auxLabel2,
+            auxValue2,
+            backFields
           }
         }
       }
@@ -1618,20 +2076,19 @@ const server = http.createServer(async (req, res) => {
       if (stripUrl) cardConfig.metadata.appleWallet.stripUrl = stripUrl
       if (thumbnailUrl) cardConfig.metadata.appleWallet.thumbnailUrl = thumbnailUrl
 
-      // Add barcode configuration
-      const finalBarcodeMessage = barcodeMessage || card?.id || `MEMBER-${Date.now()}`
+      // Add barcode configuration - use finalBarcodeMessage computed earlier
       cardConfig.metadata.appleWallet.barcodes = [{
         format: barcodeFormat,
         message: finalBarcodeMessage,
         messageEncoding: 'iso-8859-1',
-        altText: barcodeAltText || finalBarcodeMessage
+        altText: finalBarcodeAltText
       }]
       // Also set legacy barcode field for older iOS versions
       cardConfig.metadata.appleWallet.barcode = {
         format: barcodeFormat,
         message: finalBarcodeMessage,
         messageEncoding: 'iso-8859-1',
-        altText: barcodeAltText || finalBarcodeMessage
+        altText: finalBarcodeAltText
       }
 
       // Add secondary fields if provided
@@ -1650,6 +2107,34 @@ const server = http.createServer(async (req, res) => {
           label: headerLabel || '',
           value: headerValue || ''
         }]
+      }
+
+      // Add auxiliary fields if provided
+      if (auxLabel1 || auxValue1 || auxLabel2 || auxValue2) {
+        cardConfig.metadata.appleWallet.auxiliaryFields = []
+        if (auxLabel1 || auxValue1) {
+          cardConfig.metadata.appleWallet.auxiliaryFields.push({
+            key: 'aux1',
+            label: auxLabel1 || '',
+            value: auxValue1 || ''
+          })
+        }
+        if (auxLabel2 || auxValue2) {
+          cardConfig.metadata.appleWallet.auxiliaryFields.push({
+            key: 'aux2',
+            label: auxLabel2 || '',
+            value: auxValue2 || ''
+          })
+        }
+      }
+
+      // Add back fields (detail section) if provided
+      if (backFields && backFields.length > 0) {
+        cardConfig.metadata.appleWallet.backFields = backFields.map((field, i) => ({
+          key: `back${i + 1}`,
+          label: field.label,
+          value: field.value
+        }))
       }
 
       const card = await issueLoyaltyCard(cardConfig)
@@ -1701,7 +2186,13 @@ const server = http.createServer(async (req, res) => {
         logoUrl,
         iconUrl,
         stripUrl,
-        thumbnailUrl
+        thumbnailUrl,
+        // New fields
+        auxLabel1,
+        auxValue1,
+        auxLabel2,
+        auxValue2,
+        backFields
       } = updates
 
       // Update card data
@@ -1790,6 +2281,43 @@ const server = http.createServer(async (req, res) => {
       if (thumbnailUrl !== undefined) {
         card.metadata.appleWallet.thumbnailUrl = thumbnailUrl || undefined
         card.metadata.customization.thumbnailUrl = thumbnailUrl
+      }
+
+      // Update auxiliary fields
+      if (auxLabel1 !== undefined || auxValue1 !== undefined || auxLabel2 !== undefined || auxValue2 !== undefined) {
+        card.metadata.appleWallet.auxiliaryFields = []
+        if (auxLabel1 || auxValue1) {
+          card.metadata.appleWallet.auxiliaryFields.push({
+            key: 'aux1',
+            label: auxLabel1 || '',
+            value: auxValue1 || ''
+          })
+        }
+        if (auxLabel2 || auxValue2) {
+          card.metadata.appleWallet.auxiliaryFields.push({
+            key: 'aux2',
+            label: auxLabel2 || '',
+            value: auxValue2 || ''
+          })
+        }
+        card.metadata.customization.auxLabel1 = auxLabel1
+        card.metadata.customization.auxValue1 = auxValue1
+        card.metadata.customization.auxLabel2 = auxLabel2
+        card.metadata.customization.auxValue2 = auxValue2
+      }
+
+      // Update back fields (detail section)
+      if (backFields !== undefined) {
+        if (backFields && backFields.length > 0) {
+          card.metadata.appleWallet.backFields = backFields.map((field, i) => ({
+            key: `back${i + 1}`,
+            label: field.label,
+            value: field.value
+          }))
+        } else {
+          card.metadata.appleWallet.backFields = []
+        }
+        card.metadata.customization.backFields = backFields
       }
 
       // Update points if changed
@@ -1929,6 +2457,151 @@ const server = http.createServer(async (req, res) => {
 
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ cards: allCards }))
+      return
+    }
+
+    // Send message to a single pass
+    if (path.startsWith('/api/message/') && req.method === 'POST') {
+      const cardId = path.replace('/api/message/', '')
+      const card = cards.get(cardId)
+
+      if (!card) {
+        res.writeHead(404, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: 'Card not found' }))
+        return
+      }
+
+      let body = ''
+      for await (const chunk of req) body += chunk
+      const { type, message, points, secLabel, secValue } = JSON.parse(body)
+
+      // Initialize metadata if needed
+      card.metadata = card.metadata || {}
+      card.metadata.appleWallet = card.metadata.appleWallet || {}
+      card.metadata.customization = card.metadata.customization || {}
+
+      // Add bonus points if specified
+      if (type === 'points' && points > 0) {
+        const updated = await updateLoyaltyPoints({
+          cardId: card.id,
+          delta: points
+        })
+        card.points = updated.points
+      }
+
+      // Update secondary field with change message for notification
+      if (secLabel || secValue) {
+        card.metadata.appleWallet.secondaryFields = [{
+          key: 'secondary1',
+          label: secLabel || card.metadata.customization.secondaryLabel || '',
+          value: secValue || card.metadata.customization.secondaryValue || '',
+          changeMessage: message || 'Your pass has been updated'
+        }]
+        card.metadata.customization.secondaryLabel = secLabel || card.metadata.customization.secondaryLabel
+        card.metadata.customization.secondaryValue = secValue || card.metadata.customization.secondaryValue
+      }
+
+      // Add back field with message for notification display
+      card.metadata.appleWallet.backFields = card.metadata.appleWallet.backFields || []
+      card.metadata.appleWallet.backFields.unshift({
+        key: `msg_${Date.now()}`,
+        label: new Date().toLocaleString(),
+        value: message || (type === 'points' ? `You earned ${points} bonus points!` : 'Your pass has been updated'),
+        changeMessage: message || (type === 'points' ? `You earned ${points} bonus points!` : 'Your pass has been updated')
+      })
+      // Keep only last 10 messages
+      card.metadata.appleWallet.backFields = card.metadata.appleWallet.backFields.slice(0, 10)
+
+      // Update timestamp
+      passUpdateTimes.set(cardId, Date.now())
+      cards.set(cardId, card)
+
+      // Send push notification
+      await sendPushNotification(cardId)
+
+      const registrations = deviceRegistrations.get(cardId)
+      const registeredDevices = registrations ? registrations.size : 0
+
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({
+        success: true,
+        cardId: card.id,
+        points: card.points,
+        registeredDevices,
+        pushSent: registeredDevices > 0
+      }))
+      return
+    }
+
+    // Broadcast message to all passes
+    if (path === '/api/broadcast' && req.method === 'POST') {
+      let body = ''
+      for await (const chunk of req) body += chunk
+      const { type, message, points, secLabel, secValue } = JSON.parse(body)
+
+      let totalPasses = 0
+      let pushesSent = 0
+
+      for (const [cardId, card] of cards) {
+        totalPasses++
+
+        // Initialize metadata if needed
+        card.metadata = card.metadata || {}
+        card.metadata.appleWallet = card.metadata.appleWallet || {}
+        card.metadata.customization = card.metadata.customization || {}
+
+        // Add bonus points if specified
+        if (type === 'points' && points > 0) {
+          const updated = await updateLoyaltyPoints({
+            cardId: card.id,
+            delta: points
+          })
+          card.points = updated.points
+        }
+
+        // Update secondary field with change message
+        if (secLabel || secValue) {
+          card.metadata.appleWallet.secondaryFields = [{
+            key: 'secondary1',
+            label: secLabel || card.metadata.customization.secondaryLabel || '',
+            value: secValue || card.metadata.customization.secondaryValue || '',
+            changeMessage: message || 'Your pass has been updated'
+          }]
+        }
+
+        // Add back field with message
+        card.metadata.appleWallet.backFields = card.metadata.appleWallet.backFields || []
+        card.metadata.appleWallet.backFields.unshift({
+          key: `msg_${Date.now()}`,
+          label: new Date().toLocaleString(),
+          value: message || (type === 'points' ? `You earned ${points} bonus points!` : 'Your pass has been updated'),
+          changeMessage: message || (type === 'points' ? `You earned ${points} bonus points!` : 'Your pass has been updated')
+        })
+        card.metadata.appleWallet.backFields = card.metadata.appleWallet.backFields.slice(0, 10)
+
+        // Update timestamp
+        passUpdateTimes.set(cardId, Date.now())
+        cards.set(cardId, card)
+
+        // Send push notification
+        const registrations = deviceRegistrations.get(cardId)
+        if (registrations && registrations.size > 0) {
+          try {
+            await sendPushNotification(cardId)
+            pushesSent++
+          } catch (err) {
+            console.log(`   ⚠️ Failed to push to ${cardId}: ${err.message}`)
+          }
+        }
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({
+        success: true,
+        totalPasses,
+        pushesSent,
+        message: `Broadcast sent to ${totalPasses} passes`
+      }))
       return
     }
 
