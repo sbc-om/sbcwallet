@@ -3,20 +3,22 @@ import type { PassData, ApplePassConfig, ApplePassTemplate, ProfileConfig } from
 import { readFile } from 'fs/promises'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import { deflateSync } from 'zlib'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 export class AppleWalletAdapter {
-  private config: ApplePassConfig
+  private config: ApplePassConfig & { signerKeyPath?: string }
 
-  constructor(config?: Partial<ApplePassConfig>) {
+  constructor(config?: Partial<ApplePassConfig> & { signerKeyPath?: string }) {
     this.config = {
       teamId: config?.teamId || process.env.APPLE_TEAM_ID || '',
       passTypeId: config?.passTypeId || process.env.APPLE_PASS_TYPE_ID || '',
-      certPath: config?.certPath || process.env.APPLE_CERT_PATH || '',
+      certPath: config?.certPath || process.env.APPLE_CERT_PATH || process.env.APPLE_SIGNER_CERT_PATH || '',
       certPassword: config?.certPassword || process.env.APPLE_CERT_PASSWORD || '',
-      wwdrPath: config?.wwdrPath || process.env.APPLE_WWDR_PATH || ''
+      wwdrPath: config?.wwdrPath || process.env.APPLE_WWDR_PATH || '',
+      signerKeyPath: config?.signerKeyPath || process.env.APPLE_SIGNER_KEY_PATH || ''
     }
   }
 
@@ -71,9 +73,21 @@ export class AppleWalletAdapter {
         passProps.barcodes = populatedTemplate.barcodes
       }
 
-      // Add generic fields
+      // Add generic fields (Apple Wallet "generic" pass type)
       if (populatedTemplate.generic) {
         passProps.generic = populatedTemplate.generic
+      }
+
+      // For loyalty cards, use storeCard type
+      if (passData.profile === 'loyalty') {
+        // Convert generic fields to storeCard fields
+        passProps.storeCard = passProps.generic || populatedTemplate.generic || {
+          primaryFields: [],
+          secondaryFields: [],
+          auxiliaryFields: [],
+          backFields: []
+        }
+        delete passProps.generic
       }
 
       // Advanced passthrough: allow issuers to supply any PassKit fields.
@@ -82,16 +96,63 @@ export class AppleWalletAdapter {
         Object.assign(passProps, appleWallet.passOverrides)
       }
 
-      // Create pass
+      // Add formatVersion (required by Apple)
+      passProps.formatVersion = 1
+
+      // Create pass.json buffer
+      const passJsonBuffer = Buffer.from(JSON.stringify(passProps), 'utf-8')
+
+      // Determine signer key path (use separate key file if provided, otherwise use cert path)
+      const signerKeyPath = this.config.signerKeyPath || this.config.certPath
+
+      // Read certificate files as buffers
+      const wwdrBuffer = await readFile(this.config.wwdrPath)
+      const signerCertBuffer = await readFile(this.config.certPath)
+      const signerKeyBuffer = await readFile(signerKeyPath)
+
+      // Try to load icon files from certs directory, or create valid PNG programmatically
+      const certsDir = dirname(this.config.certPath)
+      let iconPng: Buffer
+      let icon2xPng: Buffer
+      let logoPng: Buffer
+      let logo2xPng: Buffer
+
+      try {
+        iconPng = await readFile(join(certsDir, 'icon.png'))
+        icon2xPng = await readFile(join(certsDir, 'icon@2x.png'))
+      } catch {
+        // Create valid PNG icons programmatically if files don't exist
+        iconPng = this.createValidPng(29, 29, [31, 41, 55])  // #1f2937 dark gray
+        icon2xPng = this.createValidPng(58, 58, [31, 41, 55])
+      }
+
+      try {
+        logoPng = await readFile(join(certsDir, 'logo.png'))
+        logo2xPng = await readFile(join(certsDir, 'logo@2x.png'))
+      } catch {
+        // Create logo (160x50 for 1x, 320x100 for 2x)
+        logoPng = this.createValidPng(160, 50, [31, 41, 55])
+        logo2xPng = this.createValidPng(320, 100, [31, 41, 55])
+      }
+
+      // Build pass buffers with icon and logo
+      const passBuffers: Record<string, Buffer> = {
+        'pass.json': passJsonBuffer,
+        'icon.png': iconPng,
+        'icon@2x.png': icon2xPng,
+        'logo.png': logoPng,
+        'logo@2x.png': logo2xPng
+      }
+
+      // Create pass with pass.json and icon in buffers
       const pass = new PKPass(
-        {},
+        passBuffers,
         {
-          wwdr: this.config.wwdrPath,
-          signerCert: this.config.certPath,
-          signerKey: this.config.certPath,
+          wwdr: wwdrBuffer,
+          signerCert: signerCertBuffer,
+          signerKey: signerKeyBuffer,
           signerKeyPassphrase: this.config.certPassword
-        },
-        passProps
+        }
       )
 
       // Generate buffer
@@ -100,6 +161,93 @@ export class AppleWalletAdapter {
     } catch (error) {
       throw new Error(`Failed to generate Apple Wallet pass: ${error instanceof Error ? error.message : String(error)}`)
     }
+  }
+
+  /**
+   * Create a valid PNG image programmatically
+   * Uses zlib for compression (proper PNG format)
+   */
+  private createValidPng(width: number, height: number, rgb: [number, number, number]): Buffer {
+    
+    // PNG signature
+    const signature = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
+    
+    // Helper to create PNG chunk
+    const createChunk = (type: string, data: Buffer): Buffer => {
+      const typeBuffer = Buffer.from(type, 'ascii')
+      const length = Buffer.alloc(4)
+      length.writeUInt32BE(data.length, 0)
+      
+      const crcData = Buffer.concat([typeBuffer, data])
+      const crc = Buffer.alloc(4)
+      crc.writeUInt32BE(this.crc32(crcData), 0)
+      
+      return Buffer.concat([length, typeBuffer, data, crc])
+    }
+    
+    // IHDR chunk
+    const ihdrData = Buffer.alloc(13)
+    ihdrData.writeUInt32BE(width, 0)
+    ihdrData.writeUInt32BE(height, 4)
+    ihdrData.writeUInt8(8, 8)   // bit depth
+    ihdrData.writeUInt8(2, 9)   // color type (RGB)
+    ihdrData.writeUInt8(0, 10)  // compression
+    ihdrData.writeUInt8(0, 11)  // filter
+    ihdrData.writeUInt8(0, 12)  // interlace
+    const ihdr = createChunk('IHDR', ihdrData)
+    
+    // Raw image data (filter byte + RGB pixels per row)
+    const rowSize = 1 + width * 3
+    const rawData = Buffer.alloc(height * rowSize)
+    for (let y = 0; y < height; y++) {
+      const rowOffset = y * rowSize
+      rawData[rowOffset] = 0 // filter: none
+      for (let x = 0; x < width; x++) {
+        const pixelOffset = rowOffset + 1 + x * 3
+        rawData[pixelOffset] = rgb[0]
+        rawData[pixelOffset + 1] = rgb[1]
+        rawData[pixelOffset + 2] = rgb[2]
+      }
+    }
+    
+    // Compress and create IDAT chunk
+    const compressed = deflateSync(rawData, { level: 9 })
+    const idat = createChunk('IDAT', compressed)
+    
+    // IEND chunk
+    const iend = createChunk('IEND', Buffer.alloc(0))
+    
+    return Buffer.concat([signature, ihdr, idat, iend])
+  }
+
+  /**
+   * CRC32 calculation for PNG chunks
+   */
+  private crc32(data: Buffer): number {
+    let crc = 0xFFFFFFFF
+    const table = this.getCrc32Table()
+    
+    for (let i = 0; i < data.length; i++) {
+      crc = (crc >>> 8) ^ table[(crc ^ data[i]) & 0xFF]
+    }
+    
+    return (crc ^ 0xFFFFFFFF) >>> 0
+  }
+
+  private crc32Table: number[] | null = null
+  
+  private getCrc32Table(): number[] {
+    if (this.crc32Table) return this.crc32Table
+    
+    this.crc32Table = []
+    for (let n = 0; n < 256; n++) {
+      let c = n
+      for (let k = 0; k < 8; k++) {
+        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1)
+      }
+      this.crc32Table[n] = c
+    }
+    return this.crc32Table
   }
 
   private mergeTemplates(base: ApplePassTemplate, profile: Partial<ApplePassTemplate>): ApplePassTemplate {

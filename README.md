@@ -536,6 +536,8 @@ await pushLoyaltyMessage({
 
 ## Demo Servers
 
+### Google Wallet
+
 ```sh
 # Multi-tenant loyalty server
 npm run loyalty:server:multi
@@ -544,6 +546,38 @@ npm run loyalty:server:multi
 # Simple loyalty server
 npm run loyalty:server
 # Open http://localhost:5189
+
+# Google Wallet issuance (CLI)
+node examples/loyalty-google-issue.js
+```
+
+### Apple Wallet
+
+```sh
+# Apple Wallet server with web UI
+node examples/loyalty-apple-server.js
+# Open http://localhost:3001
+
+# Apple Wallet issuance (CLI)
+node examples/loyalty-apple-issue.js
+```
+
+#### Required Environment Variables for Apple Wallet
+
+```bash
+# Apple Developer credentials
+APPLE_TEAM_ID=YOUR_TEAM_ID           # Your Apple Developer Team ID
+APPLE_PASS_TYPE_ID=pass.com.x.y      # Your Pass Type Identifier
+APPLE_CERT_PATH=/path/to/cert.p12    # Path to signing certificate
+APPLE_CERT_PASSWORD=password         # Certificate password (if any)
+APPLE_WWDR_PATH=/path/to/wwdr.pem    # Apple WWDR certificate
+
+# Optional customization
+LOYALTY_BUSINESS_NAME=SBC Coffee
+LOYALTY_PROGRAM_NAME=SBC Rewards
+LOYALTY_CUSTOMER_NAME=John Doe
+LOYALTY_INITIAL_POINTS=10
+LOYALTY_BG=#111827
 ```
 
 ---
