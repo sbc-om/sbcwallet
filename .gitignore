@@ -20,7 +20,7 @@ dist/
 google-credentials*.json
 smartbusinesscenter-*.json
 certs/*.json
-
+certs/*.p8
 # generated images
 hero-images/*.png
 *.png

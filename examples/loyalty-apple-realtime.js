@@ -17,16 +17,33 @@
  *   APPLE_APNS_KEY_ID     - APNs Key ID
  *   PUBLIC_URL            - Public URL for webServiceURL (e.g., https://abc123.ngrok.io)
  *   PORT                  - Server port (default: 3002)
+ *   APNS_RELAY_URL        - Cloudflare Worker URL for APNs relay (recommended for restricted networks)
+ *   APNS_RELAY_SECRET     - Secret for relay authentication
+ *   APNS_SOCKS5_HOST      - SOCKS5 proxy host (e.g., 127.0.0.1)
+ *   APNS_SOCKS5_PORT      - SOCKS5 proxy port (e.g., 10808 for V2Ray)
  */
 
 import 'dotenv/config'
 import http from 'http'
 import https from 'https'
 import http2 from 'http2'
+import tls from 'tls'
+import net from 'net'
 import { URL } from 'url'
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
+import { SocksClient } from 'socks'
+
+// Proxy/Relay configuration for APNs (to bypass network restrictions)
+// Option 1: APNS_SOCKS5 - Use SOCKS5 proxy (V2Ray, Clash, etc.) - RECOMMENDED
+// Option 2: APNS_RELAY_URL - Use Cloudflare Worker relay
+// Option 3: APNS_PROXY - Use HTTP proxy with CONNECT tunnel
+const APNS_SOCKS5_HOST = process.env.APNS_SOCKS5_HOST || ''
+const APNS_SOCKS5_PORT = parseInt(process.env.APNS_SOCKS5_PORT || '10808')
+const APNS_RELAY_URL = process.env.APNS_RELAY_URL
+const APNS_RELAY_SECRET = process.env.APNS_RELAY_SECRET || ''
+const APNS_PROXY = process.env.APNS_PROXY || process.env.HTTPS_PROXY || process.env.https_proxy
 
 import {
   createBusiness,
@@ -45,11 +62,13 @@ const PASS_TYPE_ID = process.env.APPLE_PASS_TYPE_ID || 'pass.com.sbc.loyalty'
 const USE_SANDBOX = process.env.APNS_SANDBOX !== 'false' // Default to sandbox
 const APNS_HOST = USE_SANDBOX ? 'api.sandbox.push.apple.com' : 'api.push.apple.com'
 const APNS_PORT = 443
+const APNS_PRIORITY = process.env.APNS_PRIORITY || '10'
 
 // APNs Token-based authentication (.p8 key)
 const APNS_KEY_ID = process.env.APPLE_APNS_KEY_ID || 'KDP29L8J65'
 const APNS_TEAM_ID = process.env.APPLE_TEAM_ID || '542Y2ARGQJ'
 const APNS_KEY_PATH = process.env.APPLE_APNS_KEY_PATH || './certs/AuthKey_KDP29L8J65.p8'
+
 
 let apnsKey = null
 let apnsJwtToken = null
@@ -60,6 +79,13 @@ try {
   console.log(`✅ APNs Auth Key loaded (${USE_SANDBOX ? 'SANDBOX' : 'PRODUCTION'})`)
   console.log(`   Key ID: ${APNS_KEY_ID}`)
   console.log(`   Team ID: ${APNS_TEAM_ID}`)
+  if (APNS_SOCKS5_HOST) {
+    console.log(`   🧦 SOCKS5: ${APNS_SOCKS5_HOST}:${APNS_SOCKS5_PORT}`)
+  } else if (APNS_RELAY_URL) {
+    console.log(`   🌐 Relay: ${APNS_RELAY_URL}`)
+  } else if (APNS_PROXY) {
+    console.log(`   🌐 Proxy: ${APNS_PROXY}`)
+  }
 } catch (err) {
   console.log('⚠️ APNs Auth Key not loaded - push notifications disabled')
   console.log('   Error:', err.message)
@@ -153,16 +179,212 @@ function getApnsJwtToken() {
 }
 
 /**
+ * Connect to APNs through HTTP proxy using CONNECT tunnel
+ */
+function connectThroughProxy(proxyUrl, targetHost, targetPort) {
+  return new Promise((resolve, reject) => {
+    const proxy = new URL(proxyUrl)
+    const proxyHost = proxy.hostname
+    const proxyPort = parseInt(proxy.port) || 80
+    
+    console.log(`   🔗 Connecting through proxy ${proxyHost}:${proxyPort}...`)
+    
+    const socket = net.connect(proxyPort, proxyHost, () => {
+      socket.write(`CONNECT ${targetHost}:${targetPort} HTTP/1.1\r\n`)
+      socket.write(`Host: ${targetHost}:${targetPort}\r\n`)
+      socket.write(`\r\n`)
+    })
+    
+    socket.once('data', (data) => {
+      const response = data.toString()
+      if (response.includes('200')) {
+        console.log(`   ✅ Proxy tunnel established`)
+        // Upgrade to TLS
+        const tlsSocket = tls.connect({
+          socket: socket,
+          servername: targetHost,
+          ALPNProtocols: ['h2']
+        }, () => {
+          resolve(tlsSocket)
+        })
+        tlsSocket.on('error', reject)
+      } else {
+        reject(new Error(`Proxy CONNECT failed: ${response.split('\r\n')[0]}`))
+      }
+    })
+    
+    socket.on('error', reject)
+    socket.setTimeout(10000, () => {
+      socket.destroy()
+      reject(new Error('Proxy connection timeout'))
+    })
+  })
+}
+
+/**
+ * Send APNs push via Cloudflare Worker relay
+ * This is the recommended method for networks with restricted access to Apple servers
+ */
+async function sendApnsPushViaRelay(pushToken) {
+  const jwt = getApnsJwtToken()
+  
+  console.log(`   🌐 Sending via relay: ${APNS_RELAY_URL}`)
+  
+  const response = await fetch(APNS_RELAY_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Relay-Secret': APNS_RELAY_SECRET
+    },
+    body: JSON.stringify({
+      pushToken,
+      jwt,
+      topic: PASS_TYPE_ID,
+      sandbox: USE_SANDBOX,
+      priority: parseInt(APNS_PRIORITY)
+    })
+  })
+  
+  const result = await response.json()
+  
+  if (result.success) {
+    console.log(`   ✅ Push sent via relay (status: ${result.status})`)
+    return { status: result.status, success: true }
+  } else {
+    throw new Error(`Relay error: ${result.error || result.apnsResponse || 'Unknown error'}`)
+  }
+}
+
+/**
+ * Connect to APNs through SOCKS5 proxy (V2Ray, Clash, etc.)
+ */
+async function connectThroughSocks5(targetHost, targetPort) {
+  console.log(`   🧦 Connecting via SOCKS5 ${APNS_SOCKS5_HOST}:${APNS_SOCKS5_PORT}...`)
+  
+  const { socket } = await SocksClient.createConnection({
+    proxy: {
+      host: APNS_SOCKS5_HOST,
+      port: APNS_SOCKS5_PORT,
+      type: 5
+    },
+    command: 'connect',
+    destination: {
+      host: targetHost,
+      port: targetPort
+    },
+    timeout: 10000
+  })
+  
+  console.log(`   ✅ SOCKS5 tunnel established`)
+  
+  // Upgrade to TLS with ALPN for HTTP/2
+  const tlsSocket = tls.connect({
+    socket: socket,
+    servername: targetHost,
+    ALPNProtocols: ['h2']
+  })
+  
+  return new Promise((resolve, reject) => {
+    tlsSocket.on('secureConnect', () => {
+      console.log(`   ✅ TLS handshake complete (ALPN: ${tlsSocket.alpnProtocol})`)
+      resolve(tlsSocket)
+    })
+    tlsSocket.on('error', reject)
+  })
+}
+
+/**
+ * Send APNs push via SOCKS5 proxy (V2Ray, Clash, etc.)
+ */
+async function sendApnsPushViaSocks5(pushToken) {
+  const jwt = getApnsJwtToken()
+  
+  try {
+    const tlsSocket = await connectThroughSocks5(APNS_HOST, APNS_PORT)
+    
+    return new Promise((resolve, reject) => {
+      const client = http2.connect(`https://${APNS_HOST}:${APNS_PORT}`, {
+        createConnection: () => tlsSocket,
+        peerMaxConcurrentStreams: 1
+      })
+      
+      client.on('error', (err) => {
+        console.log(`   ❌ HTTP/2 error: ${err.message}`)
+        reject(err)
+      })
+      
+      const req = client.request({
+        ':method': 'POST',
+        ':path': `/3/device/${pushToken}`,
+        'authorization': `bearer ${jwt}`,
+        'apns-topic': PASS_TYPE_ID,
+        'apns-push-type': 'background',
+        'apns-priority': APNS_PRIORITY
+      })
+      
+      let responseData = ''
+      
+      req.on('response', (headers) => {
+        const status = headers[':status']
+        console.log(`   📡 APNs response status: ${status}`)
+        
+        if (status === 200) {
+          client.close()
+          resolve({ status, success: true })
+        }
+      })
+      
+      req.on('data', (chunk) => {
+        responseData += chunk
+      })
+      
+      req.on('end', () => {
+        if (responseData) {
+          console.log(`   📡 APNs response: ${responseData}`)
+        }
+        client.close()
+      })
+      
+      req.on('error', (err) => {
+        console.log(`   ❌ Request error: ${err.message}`)
+        client.close()
+        reject(err)
+      })
+      
+      req.end(JSON.stringify({}))
+    })
+  } catch (err) {
+    console.log(`   ❌ SOCKS5 error: ${err.message}`)
+    throw err
+  }
+}
+
+/**
  * Send APNs push notification using HTTP/2 with JWT authentication
  * For PassKit, we send an empty push to trigger the device to fetch the updated pass
+ * Supports: 1) SOCKS5 proxy (V2Ray), 2) Cloudflare Worker relay, 3) HTTP proxy, 4) Direct connection
  */
 async function sendApnsPush(pushToken) {
   if (!apnsKey) {
     throw new Error('APNs Auth Key not configured')
   }
 
-  return new Promise((resolve, reject) => {
+  // Method 1: Use SOCKS5 proxy (V2Ray, Clash, etc.) - BEST for restricted networks
+  if (APNS_SOCKS5_HOST) {
+    return sendApnsPushViaSocks5(pushToken)
+  }
+
+  // Method 2: Use Cloudflare Worker relay
+  if (APNS_RELAY_URL) {
+    return sendApnsPushViaRelay(pushToken)
+  }
+
+  // Method 3 & 4: Direct or via HTTP proxy
+  return new Promise(async (resolve, reject) => {
     console.log(`   🔌 Connecting to APNs (${APNS_HOST})...`)
+    if (APNS_PROXY) {
+      console.log(`   🌐 Using proxy: ${APNS_PROXY}`)
+    }
     
     let settled = false
     
@@ -175,9 +397,28 @@ async function sendApnsPush(pushToken) {
       }
     }, 10000)
     
-    const client = http2.connect(`https://${APNS_HOST}:${APNS_PORT}`, {
-      peerMaxConcurrentStreams: 1
-    })
+    let client
+    
+    try {
+      if (APNS_PROXY) {
+        // Connect through proxy
+        const tlsSocket = await connectThroughProxy(APNS_PROXY, APNS_HOST, APNS_PORT)
+        client = http2.connect(`https://${APNS_HOST}:${APNS_PORT}`, {
+          createConnection: () => tlsSocket,
+          peerMaxConcurrentStreams: 1
+        })
+      } else {
+        // Direct connection
+        client = http2.connect(`https://${APNS_HOST}:${APNS_PORT}`, {
+          peerMaxConcurrentStreams: 1
+        })
+      }
+    } catch (err) {
+      clearTimeout(connectionTimeout)
+      console.log(`   ❌ Connection setup error: ${err.message}`)
+      reject(err)
+      return
+    }
     
     const cleanup = () => {
       clearTimeout(connectionTimeout)
@@ -207,7 +448,7 @@ async function sendApnsPush(pushToken) {
         'authorization': `bearer ${jwt}`,
         'apns-topic': PASS_TYPE_ID,
         'apns-push-type': 'background',
-        'apns-priority': '5'
+        'apns-priority': APNS_PRIORITY
       })
 
       let responseData = ''
@@ -1276,15 +1517,16 @@ const server = http.createServer(async (req, res) => {
 
       // Check If-Modified-Since header
       const ifModifiedSince = req.headers['if-modified-since']
-      const serverTime = passUpdateTimes.get(serialNumber) || Date.now()
+      const serverTime = passUpdateTimes.get(serialNumber) || 0
       
       if (ifModifiedSince) {
         const clientTime = new Date(ifModifiedSince).getTime()
         console.log(`   📅 If-Modified-Since: ${ifModifiedSince} (${clientTime})`)
         console.log(`   📅 Server time: ${new Date(serverTime).toUTCString()} (${serverTime})`)
         
-        // Only return 304 if server time is NOT newer than client time
-        if (serverTime <= clientTime) {
+        // Return 304 if server time is NOT newer than client time
+        // Use 1 second tolerance since HTTP dates don't have milliseconds
+        if (serverTime <= clientTime + 1000) {
           console.log('   ✅ Not modified (304)')
           res.writeHead(304) // Not modified
           res.end()

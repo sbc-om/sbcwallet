@@ -50,6 +50,7 @@
     "jsonwebtoken": "^9.0.2",
     "passkit-generator": "^3.5.0",
     "qrcode": "^1.5.4",
+    "socks": "^2.8.7",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -58,7 +59,8 @@
     "@types/qrcode": "^1.5.5",
     "dotenv": "^17.2.3",
     "typescript": "^5.6.3",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "wrangler": "^4.61.1"
   },
   "license": "Apache-2.0",
   "repository": {
